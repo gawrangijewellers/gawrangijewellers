@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>गौरांगी ज्वैलर्स - Exquisite Jewellery & Timeless Elegance</title>
+    <link rel="icon" type="image/x-icon" href="gaurangi.ico">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&family=Noto+Sans+Devanagari:wght@700&display=swap" rel="stylesheet">
     <style>
@@ -97,7 +98,13 @@
     <!-- Header -->
     <header class="bg-white shadow-md sticky top-0 z-50">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <a href="#" class="font-brand text-3xl font-bold text-amber-800 tracking-wider">गौरांगी ज्वैलर्स</a>
+            <!-- Logo & Brand -->
+            <a href="#home" class="flex items-center space-x-3 font-brand text-3xl font-bold text-amber-800 tracking-wider">
+                <img src="gaurangi.ico" alt="Gawrangi Jewellers Logo" class="h-12 w-12 object-cover rounded-full border-2 border-amber-600 shadow-md">
+                <span>गौरांगी ज्वैलर्स</span>
+            </a>
+
+            <!-- Navigation -->
             <nav class="hidden md:flex space-x-8 items-center">
                 <a href="#home" class="nav-link text-gray-600 hover:text-amber-700 transition duration-300">Home</a>
                 <a href="#collections" class="nav-link text-gray-600 hover:text-amber-700 transition duration-300">Collections</a>
@@ -106,10 +113,17 @@
                 <a href="#location" class="nav-link text-gray-600 hover:text-amber-700 transition duration-300">Location</a>
                 <a href="#contact" class="bg-amber-700 text-white px-4 py-2 rounded-full hover:bg-amber-800 transition duration-300">Contact</a>
             </nav>
+
+            <!-- Mobile Menu Button -->
             <button class="md:hidden flex items-center" id="mobile-menu-button">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 6h16M4 12h16m-7 6h7"></path>
+                </svg>
             </button>
         </div>
+
         <!-- Mobile Menu -->
         <div class="md:hidden hidden" id="mobile-menu">
             <a href="#home" class="block py-2 px-4 text-sm hover:bg-gray-100">Home</a>
@@ -120,6 +134,7 @@
             <a href="#contact" class="block py-2 px-4 text-sm hover:bg-gray-100">Contact</a>
         </div>
     </header>
+
 
     <main>
         <!-- Hero Section -->
@@ -146,7 +161,7 @@
         <section id="collections" class="py-20 bg-white">
             <div class="container mx-auto px-6">
                 <h2 class="font-playfair text-4xl font-bold text-center mb-2 text-gray-800">Our Collections</h2>
-                <p class="text-center text-gray-500 mb-12 max-w-2xl mx-auto">From bridal grandeur to everyday elegance, explore our curated collections designed to celebrate every moment.</p>
+                <p class="text-center text-gray-500 mb-12 max-w-2xl mx-auto">दुल्हन की भव्यता से लेकर रोज़मर्रा की सादगी तक, हमारे सुसज्जित संग्रह को देखें, जिसे हर पल का जश्न मनाने के लिए तैयार किया गया है।.</p>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                     <!-- Collection Card 1 -->
                     <div class="collection-card group relative overflow-hidden rounded-lg shadow-lg">
@@ -188,8 +203,8 @@
                 </div>
                 <div class="md:w-1/2">
                     <h2 class="font-playfair text-4xl font-bold mb-4 text-gray-800">The Heart of Craftsmanship</h2>
-                    <p class="text-gray-600 mb-4">Since 1960, गौरांगी ज्वैलर्स has been a symbol of trust and artistry. Our journey began with a vision to create jewellery that isn't just an accessory, but a legacy. Each piece is a testament to the skill of our master craftsmen, blending traditional techniques with contemporary designs.</p>
-                    <p class="text-gray-600">We believe in the beauty of detail and the promise of quality, ensuring every gem and metal is sourced responsibly and crafted to perfection.</p>
+                    <p class="text-gray-600 mb-4">1960 से, गौरांगी ज्वैलर्स विश्वास और कला का प्रतीक रहा है। हमारी यात्रा की शुरुआत एक ऐसे सपने से हुई, जिसमें आभूषण केवल एक सजावट नहीं, बल्कि एक विरासत हों। हर एक गहना हमारे कुशल कारीगरों की निपुणता का प्रमाण है, जो पारंपरिक तकनीकों को आधुनिक डिज़ाइन के साथ बखूबी मिलाते हैं।</p>
+                    <p class="text-gray-600">हम बारीकियों की खूबसूरती और गुणवत्ता के वादे में विश्वास रखते हैं, यह सुनिश्चित करते हुए कि हर रत्न और धातु को जिम्मेदारी से चुना जाए और बेमिसाल उत्कृष्टता के साथ तैयार किया जाए।</p>
                 </div>
             </div>
         </section>
@@ -198,14 +213,14 @@
         <section id="promotions" class="py-20">
             <div class="container mx-auto px-6 text-center">
                  <h2 class="font-playfair text-4xl font-bold text-center mb-2 text-gray-800">Special Promotions</h2>
-                 <p class="text-center text-gray-500 mb-12 max-w-2xl mx-auto">Celebrate with us and enjoy exclusive offers on our finest collections.</p>
+                 <p class="text-center text-gray-500 mb-12 max-w-2xl mx-auto">हमारे साथ जश्न मनाएं और हमारी बेहतरीन कलेक्शन पर पाएं विशेष ऑफ़र।</p>
                 <div class="bg-amber-50 border-l-4 border-amber-500 text-amber-800 p-8 rounded-r-lg shadow-lg max-w-4xl mx-auto flex flex-col md:flex-row items-center gap-8">
                      <div class="flex-shrink-0">
                         <svg class="w-16 h-16 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path></svg>
                     </div>
                     <div class="text-left">
                         <h3 class="font-playfair text-2xl font-bold mb-2">Festive Season Offer!</h3>
-                        <p class="text-lg">Get a <span class="font-bold">3-5% discount</span> on all gold jewellery. A perfect time to add a sparkle to your celebrations. Offer valid for a limited time.</p>
+                        <p class="text-lg">Get a <span class="font-bold">3-5% discount</span> सभी स्वर्ण आभूषणों पर। अपने उत्सव में चमक जोड़ने का यह सुनहरा अवसर। ऑफ़र सीमित समय के लिए मान्य।</p>
                     </div>
                 </div>
             </div>
@@ -218,18 +233,18 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
                     <!-- Testimonial 1 -->
                     <div class="bg-stone-50 p-8 rounded-lg shadow-md">
-                        <p class="text-gray-600 mb-4">"The craftsmanship is breathtaking. My wedding necklace from गौरांगी ज्वैलर्स is something I will cherish forever. Absolutely stunning!"</p>
+                        <p class="text-gray-600 mb-4">"इनकी कारीगरी दिल को छू लेने वाली है। मेरी शादी का हार, जो मैंने गौरांगी ज्वैलर्स से लिया था, मैं हमेशा संजोकर रखूँगी। यह वाकई अद्भुत है!"</p>
                         <p class="font-bold text-amber-800">- Priya Sharma</p>
                     </div>
                     <!-- Testimonial 2 -->
                     <div class="bg-stone-50 p-8 rounded-lg shadow-md">
                         <p class="text-gray-600 mb-4">"Excellent customer service and a beautiful collection. They helped me find the perfect anniversary gift for my wife. Highly recommended."</p>
-                        <p class="font-bold text-amber-800">- Rohan Gupta</p>
+                        <p class="font-bold text-amber-800">- Devesh Singh</p>
                     </div>
                     <!-- Testimonial 3 -->
                     <div class="bg-stone-50 p-8 rounded-lg shadow-md">
-                        <p class="text-gray-600 mb-4">"I love their modern designs. The pieces are elegant, unique, and perfect for any occasion. गौरांगी ज्वैलर्स is my go-to jeweller."</p>
-                        <p class="font-bold text-amber-800">- Anjali Mehta</p>
+                        <p class="text-gray-600 mb-4">"मुझे इनके आधुनिक डिज़ाइन बहुत पसंद हैं। इनके आभूषण सुरुचिपूर्ण, अद्वितीय और हर अवसर के लिए उपयुक्त हैं। गौरांगी ज्वैलर्स मेरे लिए हमेशा पहली पसंद है।"</p>
+                        <p class="font-bold text-amber-800">- Ekta Chandrakar</p>
                     </div>
                 </div>
             </div>
@@ -263,7 +278,7 @@
                 <!-- About -->
                 <div class="md:col-span-1">
                     <h3 class="font-brand text-2xl font-bold mb-4">गौरांगी ज्वैलर्स</h3>
-                    <p class="text-gray-400">Crafting timeless elegance since 1960. We are dedicated to providing you with jewellery that celebrates life's most precious moments.</p>
+                    <p class="text-gray-400">1960 से अनंत सौंदर्य की रचना। हम ऐसे आभूषण गढ़ते हैं जो जीवन के अनमोल पलों को सदा के लिए अमर बना दें।</p>
                 </div>
                 <!-- Quick Links -->
                 <div>
