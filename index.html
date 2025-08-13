@@ -103,6 +103,7 @@
                 <a href="#collections" class="nav-link text-gray-600 hover:text-amber-700 transition duration-300">Collections</a>
                 <a href="#about" class="nav-link text-gray-600 hover:text-amber-700 transition duration-300">About Us</a>
                 <a href="#promotions" class="nav-link text-gray-600 hover:text-amber-700 transition duration-300">Promotions</a>
+                <a href="#location" class="nav-link text-gray-600 hover:text-amber-700 transition duration-300">Location</a>
                 <a href="#contact" class="bg-amber-700 text-white px-4 py-2 rounded-full hover:bg-amber-800 transition duration-300">Contact</a>
             </nav>
             <button class="md:hidden flex items-center" id="mobile-menu-button">
@@ -115,6 +116,7 @@
             <a href="#collections" class="block py-2 px-4 text-sm hover:bg-gray-100">Collections</a>
             <a href="#about" class="block py-2 px-4 text-sm hover:bg-gray-100">About Us</a>
             <a href="#promotions" class="block py-2 px-4 text-sm hover:bg-gray-100">Promotions</a>
+            <a href="#location" class="block py-2 px-4 text-sm hover:bg-gray-100">Location</a>
             <a href="#contact" class="block py-2 px-4 text-sm hover:bg-gray-100">Contact</a>
         </div>
     </header>
@@ -232,12 +234,32 @@
                 </div>
             </div>
         </section>
+        <section id="location" class="py-20">
+            <!-- GEO MAP SECTION -->
+            <div class="container mx-auto px-6">
+                <h2 class="font-playfair text-4xl font-bold text-center mb-12 text-gray-800">Our Location</h2>
+                <div class="rounded-lg overflow-hidden shadow-lg border border-gray-200">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1497.1465177351986!2d81.32511680451904!3d22.003461427739254!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a29b9b593885ebd%3A0xd731301a5ca9be26!2sGawrangi%20Jewellers!5e0!3m2!1sen!2sin!4v1755073125471!5m2!1sen!2sin"  class="w-full" height="400" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                    <!-- <iframe 
+                        src="https://maps.app.goo.gl/yUZ3Yzqy18zBiDxs6" 
+                        class="w-full"
+                        height="400" 
+                        style="border:0;" 
+                        allowfullscreen="" 
+                        loading="lazy" 
+                        referrerpolicy="no-referrer-when-downgrade">
+                    </iframe> -->
+                </div>
+            </div>
+            <!-- END GEO MAP SECTION -->
+        </section>
     </main>
 
     <!-- Footer -->
     <footer id="contact" class="bg-gray-800 text-white">
         <div class="container mx-auto px-6 py-12">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                
                 <!-- About -->
                 <div class="md:col-span-1">
                     <h3 class="font-brand text-2xl font-bold mb-4">गौरांगी ज्वैलर्स</h3>
@@ -260,9 +282,16 @@
                     <p class="text-gray-400 mb-2">Email: gawrangi.jewellers@gmail.com</p>
                     <p class="text-gray-400">Phone: +91 9329558080</p>
                     <div class="flex space-x-4 mt-4">
-                        <a href="https://www.facebook.com/share/1D1SoToz1f/" class="text-gray-400 hover:text-white"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clip-rule="evenodd" /></svg></a>
+                        <a href="https://www.facebook.com/share/1D1SoToz1f/" class="text-gray-400 hover:text-white"><svg class="w-6 h-6" fill="#1877F2" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clip-rule="evenodd" /></svg></a>
+                        <a href="https://wa.me/919329558080?text=Hello%2C%20I%20am%20interested%20in%20your%20jewellery." 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        class="text-green-400 hover:text-white"
+                        aria-label="Contact us on WhatsApp">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" class="w-6 h-6"><path fill-rule="evenodd" fill="currentColor" d="M16.003 4.438a11.563 11.563 0 0 0-11.563 11.562c0 3.14.963 5.88 2.812 8.24l-3.12 6.633 6.81-3.08c2.2.93 4.65.93 6.84.01l.02.01c6.38-.01 11.56-5.19 11.56-11.57a11.562 11.562 0 0 0-11.56-11.56Zm0 21.44a9.87 9.87 0 0 1-5.23-1.52l-.38-.22-3.9 1.76 1.8-3.8-.25-.4a9.87 9.87 0 0 1-1.56-5.26c0-5.44 4.42-9.86 9.87-9.86s9.86 4.42 9.86 9.86-4.41 9.86-9.86 9.86Zm5.2-6.83c-.28-.14-1.64-.81-1.9-1.02-.25-.14-.44-.22-.62.14-.18.36-.72.81-.88 1.02-.16.21-.32.23-.6.09-.28-.14-1.18-.44-2.25-1.39-1.07-.95-1.52-1.7-1.8-2.25-.28-.55-.01-.85.13-1.14.13-.13.28-.36.42-.54.14-.18.18-.3-.04-.54s-.62-1.5-.85-2.05c-.23-.55-.46-.48-.62-.48-.16 0-.35-.02-.53-.02s-.45.07-.7.36c-.25.28-.96.93-1.2 1.95-.24 1.02.1 1.9.2 2.05.14.16 1.2 1.8 2.9 2.55.45.2.7.3.9.4.45.2.8.16 1.1.1.3-.06.96-.4 1.1-.78.13-.38.13-.7.1-.78-.04-.08-.13-.13-.28-.22Z" clip-rule="evenodd"/></svg>
+                        </a>
                         <!-- <a href="#" class="text-gray-400 hover:text-white"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.71v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" /></svg></a> -->
-                        <a href="https://www.instagram.com/gawrangi_jewellers?igsh=OTh5b29tbWR0YXl4" class="text-gray-400 hover:text-white"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.024.06 1.378.06 3.808s-.012 2.784-.06 3.808c-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.024.048-1.378.06-3.808.06s-2.784-.013-3.808-.06c-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.048-1.024-.06-1.378-.06-3.808s.012-2.784.06-3.808c.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 016.345 2.525c.636-.247 1.363-.416 2.427-.465C9.793 2.013 10.148 2 12.315 2zm-1.161 2.043c-1.049.045-1.69.21-2.227.427A3.396 3.396 0 006.92 6.16a3.396 3.396 0 00-.427 2.227c-.045 1.048-.06 1.374-.06 3.613s.015 2.565.06 3.613c.045 1.049.21 1.69.427 2.227a3.396 3.396 0 001.67 1.67c.537.217 1.178.382 2.227.427 1.049.045 1.374.06 3.613.06s2.565-.015 3.613-.06c1.049-.045 1.69-.21 2.227-.427a3.396 3.396 0 001.67-1.67c.217-.537.382-1.178.427-2.227.045-1.048.06-1.374.06-3.613s-.015-2.565-.06-3.613c-.045-1.049-.21-1.69-.427-2.227a3.396 3.396 0 00-1.67-1.67c-.537-.217-1.178-.382-2.227-.427-1.049-.045-1.374-.06-3.613-.06s-2.565.015-3.613.06zM12 16a4 4 0 110-8 4 4 0 010 8zm0-2a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg></a>
+                        <a href="https://www.instagram.com/gawrangi_jewellers?igsh=OTh5b29tbWR0YXl4" class="text-gray-400 hover:text-white"><svg class="w-6 h-6" fill="#E1306C" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.024.06 1.378.06 3.808s-.012 2.784-.06 3.808c-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.024.048-1.378.06-3.808.06s-2.784-.013-3.808-.06c-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.048-1.024-.06-1.378-.06-3.808s.012-2.784.06-3.808c.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 016.345 2.525c.636-.247 1.363-.416 2.427-.465C9.793 2.013 10.148 2 12.315 2zm-1.161 2.043c-1.049.045-1.69.21-2.227.427A3.396 3.396 0 006.92 6.16a3.396 3.396 0 00-.427 2.227c-.045 1.048-.06 1.374-.06 3.613s.015 2.565.06 3.613c.045 1.049.21 1.69.427 2.227a3.396 3.396 0 001.67 1.67c.537.217 1.178.382 2.227.427 1.049.045 1.374.06 3.613.06s2.565-.015 3.613-.06c1.049-.045 1.69-.21 2.227-.427a3.396 3.396 0 001.67-1.67c.217-.537.382-1.178.427-2.227.045-1.048.06-1.374.06-3.613s-.015-2.565-.06-3.613c-.045-1.049-.21-1.69-.427-2.227a3.396 3.396 0 00-1.67-1.67c-.537-.217-1.178-.382-2.227-.427-1.049-.045-1.374-.06-3.613-.06s-2.565.015-3.613.06zM12 16a4 4 0 110-8 4 4 0 010 8zm0-2a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg></a>
                     </div>
                 </div>
             </div>
