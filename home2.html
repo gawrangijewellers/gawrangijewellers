@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>गौरांगी ज्वैलर्स - Minimalist Elegance</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@700&family=Noto+Sans+Devanagari:wght@700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom color variables and styles */
+        :root {
+            --maroon: #800020; /* A deep, rich maroon */
+            --gold: #D4AF37;   /* An elegant, classic gold */
+            --off-white: #FDFBF5;
+            --dark-text: #3D3D3D;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--off-white);
+            color: var(--dark-text);
+        }
+        .font-playfair {
+            font-family: 'Playfair Display', serif;
+        }
+        /* Added a specific font for the brand name to ensure Hindi characters render beautifully */
+        .font-brand {
+            font-family: 'Noto Sans Devanagari', sans-serif;
+        }
+        .bg-maroon { background-color: var(--maroon); }
+        .text-maroon { color: var(--maroon); }
+        .bg-gold { background-color: var(--gold); }
+        .text-gold { color: var(--gold); }
+        .border-gold { border-color: var(--gold); }
+
+        /* Smooth transition for all interactive elements */
+        .transition-all {
+            transition: all 0.3s ease-in-out;
+        }
+        
+        /* Underline effect on hover for nav links */
+        .nav-link {
+            position: relative;
+            padding-bottom: 4px;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: var(--gold);
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        /* Styling for the collection cards */
+        .collection-card-minimal {
+            background-color: #fff;
+            border: 1px solid #eee;
+        }
+        .collection-card-minimal img {
+            transition: transform 0.4s ease;
+        }
+        .collection-card-minimal:hover img {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header Section -->
+    <header class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-200">
+        <div class="container mx-auto px-6 py-5 flex justify-between items-center">
+            <a href="#home" class="font-brand text-3xl font-bold text-maroon tracking-wider">गौरांगी ज्वैलर्स</a>
+            <nav class="hidden md:flex space-x-10 items-center">
+                <a href="#collections" class="nav-link text-gray-700 hover:text-maroon transition-all">Collections</a>
+                <a href="#about" class="nav-link text-gray-700 hover:text-maroon transition-all">Our Story</a>
+                <a href="#promotions" class="nav-link text-gray-700 hover:text-maroon transition-all">Offers</a>
+                <a href="#contact" class="bg-maroon text-white px-5 py-2 rounded-full hover:bg-opacity-90 transition-all">Contact</a>
+            </nav>
+            <button class="md:hidden flex items-center" id="mobile-menu-button">
+                <svg class="w-6 h-6 text-maroon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+            </button>
+        </div>
+        <!-- Mobile Menu -->
+        <div class="md:hidden hidden" id="mobile-menu">
+            <a href="#collections" class="block py-3 px-6 text-sm hover:bg-gray-50">Collections</a>
+            <a href="#about" class="block py-3 px-6 text-sm hover:bg-gray-50">Our Story</a>
+            <a href="#promotions" class="block py-3 px-6 text-sm hover:bg-gray-50">Offers</a>
+            <a href="#contact" class="block py-3 px-6 text-sm hover:bg-gray-50">Contact</a>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section id="home" class="container mx-auto px-6 py-24 md:py-32 flex flex-col md:flex-row items-center">
+            <div class="md:w-1/2 text-center md:text-left mb-12 md:mb-0">
+                <h1 class="font-playfair text-5xl md:text-7xl font-bold text-maroon mb-6 leading-tight">Where Artistry<br>Meets Desire</h1>
+                <p class="text-lg text-gray-600 mb-8 max-w-md mx-auto md:mx-0">Experience the pinnacle of craftsmanship with jewellery that embodies grace and timeless beauty.</p>
+                <a href="#collections" class="bg-gold text-maroon font-bold py-3 px-10 rounded-full hover:shadow-lg hover:transform hover:-translate-y-1 transition-all inline-block">Explore Collections</a>
+            </div>
+            <div class="md:w-1/2">
+                <img src="https://placehold.co/800x900/FFF8E1/800020?text=Elegant+Jewellery" alt="Elegant Jewellery Piece" class="rounded-lg w-full h-auto max-w-md mx-auto shadow-2xl shadow-yellow-800/10">
+            </div>
+        </section>
+
+        <!-- Featured Collections Section -->
+        <section id="collections" class="py-20 bg-white">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-16">
+                    <h2 class="font-playfair text-4xl font-bold text-maroon mb-3">Curated for You</h2>
+                    <p class="text-gray-500 max-w-xl mx-auto">Each collection is a narrative of elegance, designed to adorn your most cherished moments.</p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <!-- Collection Card -->
+                    <div class="collection-card-minimal group text-center rounded-lg overflow-hidden">
+                        <div class="overflow-hidden">
+                           <img src="https://placehold.co/600x700/D4AF37/ffffff?text=Bridal" alt="Bridal Collection" class="w-full h-auto object-cover">
+                        </div>
+                        <div class="p-6">
+                            <h3 class="font-playfair text-2xl font-bold text-maroon">The Bridal Edit</h3>
+                            <p class="text-sm text-gray-500 mt-1">For the day you'll always remember.</p>
+                        </div>
+                    </div>
+                     <!-- Collection Card -->
+                    <div class="collection-card-minimal group text-center rounded-lg overflow-hidden">
+                        <div class="overflow-hidden">
+                           <img src="https://placehold.co/600x700/800020/ffffff?text=Heirloom" alt="Heirloom Collection" class="w-full h-auto object-cover">
+                        </div>
+                        <div class="p-6">
+                            <h3 class="font-playfair text-2xl font-bold text-maroon">Heirloom Pieces</h3>
+                            <p class="text-sm text-gray-500 mt-1">Timeless treasures for generations.</p>
+                        </div>
+                    </div>
+                     <!-- Collection Card -->
+                    <div class="collection-card-minimal group text-center rounded-lg overflow-hidden">
+                        <div class="overflow-hidden">
+                           <img src="https://placehold.co/600x700/FDFBF5/800020?text=Everyday" alt="Everyday Collection" class="w-full h-auto object-cover">
+                        </div>
+                        <div class="p-6">
+                            <h3 class="font-playfair text-2xl font-bold text-maroon">Everyday Sparkle</h3>
+                            <p class="text-sm text-gray-500 mt-1">Subtle elegance for daily wear.</p>
+                        </div>
+                    </div>
+                     <!-- Collection Card -->
+                    <div class="collection-card-minimal group text-center rounded-lg overflow-hidden">
+                        <div class="overflow-hidden">
+                           <img src="https://placehold.co/600x700/3D3D3D/D4AF37?text=Gents" alt="Gents Collection" class="w-full h-auto object-cover">
+                        </div>
+                        <div class="p-6">
+                            <h3 class="font-playfair text-2xl font-bold text-maroon">For Him</h3>
+                            <p class="text-sm text-gray-500 mt-1">Refined accessories for the modern man.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Us Section -->
+        <section id="about" class="py-24">
+            <div class="container mx-auto px-6 flex flex-col md:flex-row-reverse items-center gap-12 md:gap-20">
+                <div class="md:w-1/2">
+                    <img src="https://placehold.co/800x600/800020/FDFBF5?text=Our+Workshop" alt="Gawrangi Jewellers Workshop" class="rounded-lg shadow-xl">
+                </div>
+                <div class="md:w-1/2">
+                    <h2 class="font-playfair text-4xl font-bold mb-4 text-maroon">A Legacy of Passion</h2>
+                    <p class="text-gray-600 mb-6 leading-relaxed"><span class="font-bold">गौरांगी ज्वैलर्स</span> is more than a name; it's a promise of quality and artistry passed down through generations. We began with a simple idea: to create jewellery that doesn't just adorn, but inspires. Each piece is meticulously handcrafted in our workshop, where traditional techniques meet a modern design sensibility.</p>
+                    <a href="#" class="text-gold font-bold hover:text-maroon transition-all">Learn More &rarr;</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Promotions Section -->
+        <section id="promotions" class="py-20 bg-maroon text-white">
+            <div class="container mx-auto px-6 text-center">
+                 <h2 class="font-playfair text-4xl font-bold text-center mb-3">An Exclusive Invitation</h2>
+                 <p class="text-center text-yellow-50/70 mb-10 max-w-2xl mx-auto">Become a part of the <span class="font-bold">गौरांगी ज्वैलर्स</span> family and enjoy special privileges.</p>
+                <div class="bg-black/10 border border-gold/30 p-10 rounded-lg max-w-3xl mx-auto">
+                    <h3 class="font-playfair text-3xl font-bold text-gold mb-3">First Purchase Offer</h3>
+                    <p class="text-lg text-gray-200">Enjoy a special <span class="text-gold font-bold">15% discount</span> on your first order with us. Enter the world of <span class="font-bold">गौरांगी ज्वैलर्स</span> with a token of our appreciation.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer Section -->
+        <footer id="contact" class="bg-white">
+            <div class="container mx-auto px-6 py-16">
+                <div class="text-center mb-12">
+                    <h2 class="font-playfair text-4xl font-bold text-maroon">Stay in Touch</h2>
+                    <p class="text-gray-500 mt-2">Follow our journey and be the first to know about new collections and offers.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left">
+                    <div>
+                        <h3 class="text-lg font-semibold text-maroon mb-3">Visit Our Store</h3>
+                        <p class="text-gray-600">123 Jewellery Lane<br>Jaipur, Rajasthan, 302001</p>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-maroon mb-3">Contact Us</h3>
+                        <p class="text-gray-600">Email: contact@gaurangijewellers.com</p>
+                        <p class="text-gray-600">Phone: +91 98765 43210</p>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-maroon mb-3">Follow Us</h3>
+                        <div class="flex justify-center md:justify-start space-x-5">
+                            <a href="#" class="text-gray-500 hover:text-gold transition-all" aria-label="Facebook"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clip-rule="evenodd" /></svg></a>
+                            <a href="#" class="text-gray-500 hover:text-gold transition-all" aria-label="Instagram"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.024.06 1.378.06 3.808s-.012 2.784-.06 3.808c-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.024.048-1.378.06-3.808.06s-2.784-.013-3.808-.06c-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.048-1.024-.06-1.378-.06-3.808s.012-2.784.06-3.808c.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 016.345 2.525c.636-.247 1.363-.416 2.427-.465C9.793 2.013 10.148 2 12.315 2zm-1.161 2.043c-1.049.045-1.69.21-2.227.427A3.396 3.396 0 006.92 6.16a3.396 3.396 0 00-.427 2.227c-.045 1.048-.06 1.374-.06 3.613s.015 2.565.06 3.613c.045 1.049.21 1.69.427 2.227a3.396 3.396 0 001.67 1.67c.537.217 1.178.382 2.227.427 1.049.045 1.374.06 3.613.06s2.565-.015 3.613-.06c1.049-.045 1.69-.21 2.227-.427a3.396 3.396 0 001.67-1.67c.217-.537.382-1.178.427-2.227.045-1.048.06-1.374.06-3.613s-.015-2.565-.06-3.613c-.045-1.049-.21-1.69-.427-2.227a3.396 3.396 0 00-1.67-1.67c-.537-.217-1.178-.382-2.227-.427-1.049-.045-1.374-.06-3.613-.06s-2.565.015-3.613.06zM12 16a4 4 0 110-8 4 4 0 010 8zm0-2a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-16 border-t border-gray-200 pt-8 text-center text-gray-500">
+                    <p>&copy; 2024 गौरांगी ज्वैलर्स. All Rights Reserved.</p>
+                </div>
+            </div>
+        </footer>
+    </main>
+
+    <script>
+        // JavaScript for mobile menu toggle and smooth scrolling
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                if (mobileMenu.classList.contains('hidden') === false) {
+                    mobileMenu.classList.add('hidden');
+                }
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>
