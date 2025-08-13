@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>गौरांगी ज्वैलर्स - Exquisite Jewellery & Timeless Elegance</title>
+    <link rel="icon" type="image/x-icon" href="gaurangi.ico">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&family=Noto+Sans+Devanagari:wght@700&display=swap" rel="stylesheet">
     <style>
@@ -22,7 +23,6 @@
         .font-playfair {
             font-family: 'Playfair Display', serif;
         }
-        /* Added a specific font for the brand name to ensure Hindi characters render beautifully */
         .font-brand {
             font-family: 'Noto Sans Devanagari', sans-serif;
         }
@@ -38,12 +38,10 @@
             background-position: center;
         }
 
-        /* Smooth transition for all interactive elements */
         .transition-all {
             transition: all 0.3s ease-in-out;
         }
         
-        /* Underline effect on hover for nav links */
         .nav-link {
             position: relative;
             padding-bottom: 4px;
@@ -69,14 +67,13 @@
             transform: scale(1.05);
         }
         
-        /* Styles for the new WhatsApp floating button */
         .whatsapp-float {
             position: fixed;
             width: 60px;
             height: 60px;
             bottom: 40px;
             right: 40px;
-            background-color: #25D366; /* Official WhatsApp Green */
+            background-color: #25D366;
             color: #FFF;
             border-radius: 50px;
             text-align: center;
@@ -97,32 +94,34 @@
     <!-- Header -->
     <header class="bg-white shadow-md sticky top-0 z-50">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <a href="#" class="font-brand text-3xl font-bold text-amber-800 tracking-wider">गौरांगी ज्वैलर्स</a>
+            <a href="#home" class="flex items-center space-x-3 font-brand text-3xl font-bold text-amber-800 tracking-wider">
+                <img src="gaurangi.ico" alt="Gawrangi Jewellers Logo" class="h-12 w-12 object-cover rounded-full border-2 border-amber-600 shadow-md">
+                <span>गौरांगी ज्वैलर्स</span>
+            </a>
             <nav class="hidden md:flex space-x-8 items-center">
-                <a href="#home" class="nav-link text-gray-600 hover:text-amber-700 transition duration-300">Home</a>
-                <a href="#collections" class="nav-link text-gray-600 hover:text-amber-700 transition duration-300">Collections</a>
-                <a href="#about" class="nav-link text-gray-600 hover:text-amber-700 transition duration-300">About Us</a>
-                <a href="#promotions" class="nav-link text-gray-600 hover:text-amber-700 transition duration-300">Promotions</a>
-                <a href="#contact" class="bg-amber-700 text-white px-4 py-2 rounded-full hover:bg-amber-800 transition duration-300">Contact</a>
+                <a href="#home" class="nav-link text-gray-600 hover:text-amber-700">Home</a>
+                <a href="#collections" class="nav-link text-gray-600 hover:text-amber-700">Collections</a>
+                <a href="#order-form" class="nav-link text-gray-600 hover:text-amber-700">Order Now</a>
+                <a href="#about" class="nav-link text-gray-600 hover:text-amber-700">About Us</a>
+                <a href="#location" class="nav-link text-gray-600 hover:text-amber-700">Location</a>
+                <a href="#contact" class="bg-amber-700 text-white px-4 py-2 rounded-full hover:bg-amber-800">Contact</a>
             </nav>
             <button class="md:hidden flex items-center" id="mobile-menu-button">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
             </button>
         </div>
-        <!-- Mobile Menu -->
         <div class="md:hidden hidden" id="mobile-menu">
             <a href="#home" class="block py-2 px-4 text-sm hover:bg-gray-100">Home</a>
             <a href="#collections" class="block py-2 px-4 text-sm hover:bg-gray-100">Collections</a>
+            <a href="#order-form" class="block py-2 px-4 text-sm hover:bg-gray-100">Order Now</a>
             <a href="#about" class="block py-2 px-4 text-sm hover:bg-gray-100">About Us</a>
-            <a href="#promotions" class="block py-2 px-4 text-sm hover:bg-gray-100">Promotions</a>
+            <a href="#location" class="block py-2 px-4 text-sm hover:bg-gray-100">Location</a>
             <a href="#contact" class="block py-2 px-4 text-sm hover:bg-gray-100">Contact</a>
         </div>
     </header>
 
     <main>
         <!-- Hero Section -->
-
-        <!-- HERO OPTION 3: Minimalist Typography Focus -->
         <section id="home" class="bg-off-white">
             <div class="container mx-auto px-6 py-32 md:py-48 text-center">
                 <h1 class="font-playfair text-6xl md:text-8xl font-bold text-maroon mb-4">Elegance, Redefined.</h1>
@@ -130,107 +129,89 @@
                 <a href="#collections" class="bg-maroon text-white font-bold py-3 px-10 rounded-full hover:bg-opacity-90 transition-all inline-block">View the Collections</a>
             </div>
         </section>
-        <!-- <section id="home" class="hero-bg text-white h-[80vh] flex items-center">
-            <div class="container mx-auto px-6 text-center md:text-left">
-                <div class="md:w-1/2 bg-black bg-opacity-40 p-10 rounded-lg">
-                    <h1 class="font-playfair text-5xl md:text-7xl font-bold mb-4 leading-tight">Timeless Elegance, Modern Grace</h1>
-                    <p class="text-lg md:text-xl mb-8">Discover exquisite jewellery that tells your story. Handcrafted with passion, designed for eternity.</p>
-                    <a href="#collections" class="bg-amber-600 text-white font-bold py-3 px-8 rounded-full hover:bg-amber-700 transition duration-300 transform hover:scale-105">Shop Now</a>
-                </div>
-            </div>
-        </section> -->
 
-        <!-- Featured Collections Section -->
+        <!-- Collections Section -->
         <section id="collections" class="py-20 bg-white">
             <div class="container mx-auto px-6">
                 <h2 class="font-playfair text-4xl font-bold text-center mb-2 text-gray-800">Our Collections</h2>
-                <p class="text-center text-gray-500 mb-12 max-w-2xl mx-auto">From bridal grandeur to everyday elegance, explore our curated collections designed to celebrate every moment.</p>
+                <p class="text-center text-gray-500 mb-12 max-w-2xl mx-auto">दुल्हन की भव्यता से लेकर रोज़मर्रा की सादगी तक, हमारे सुसज्जित संग्रह को देखें, जिसे हर पल का जश्न मनाने के लिए तैयार किया गया है।.</p>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                    <!-- Collection Card 1 -->
-                    <div class="collection-card group relative overflow-hidden rounded-lg shadow-lg">
-                        <img src="necklace1.jpg" alt="Necklaces" class="w-full h-full object-cover transition-transform duration-500 ease-in-out">
-                        <div class="collection-overlay absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 transition-opacity duration-500">
-                            <h3 class="text-white font-playfair text-3xl font-bold">Necklaces</h3>
+                    <div class="collection-card group relative overflow-hidden rounded-lg shadow-lg"><img src="necklace1.jpg" alt="Necklaces" class="w-full h-full object-cover transition-transform duration-500 ease-in-out"><div class="collection-overlay absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 transition-opacity duration-500"><h3 class="text-white font-playfair text-3xl font-bold">Necklaces</h3></div></div>
+                    <div class="collection-card group relative overflow-hidden rounded-lg shadow-lg"><img src="earring1.jpg" alt="Earrings" class="w-full h-full object-cover transition-transform duration-500 ease-in-out"><div class="collection-overlay absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 transition-opacity duration-500"><h3 class="text-white font-playfair text-3xl font-bold">Earrings</h3></div></div>
+                    <div class="collection-card group relative overflow-hidden rounded-lg shadow-lg"><img src="goldenbracelet2.jpg" alt="Bracelets" class="w-full h-full object-cover transition-transform duration-500 ease-in-out"><div class="collection-overlay absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 transition-opacity duration-500"><h3 class="text-white font-playfair text-3xl font-bold">Bracelets</h3></div></div>
+                    <div class="collection-card group relative overflow-hidden rounded-lg shadow-lg"><img src="goldRing1.jpg" alt="Rings" class="w-full h-full object-cover transition-transform duration-500 ease-in-out"><div class="collection-overlay absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 transition-opacity duration-500"><h3 class="text-white font-playfair text-3xl font-bold">Rings</h3></div></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Order Form Section -->
+        <section id="order-form" class="py-20 bg-stone-100">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="font-playfair text-4xl font-bold text-maroon">ऑर्डर फ़ार्म</h2>
+                    <p class="text-gray-500 mt-2 max-w-xl mx-auto">किसी कस्टम आभूषण का ऑर्डर करने या किसी आभूषण के बारे में पूछताछ करने के लिए नीचे दिया गया फॉर्म भरें।</p>
+                </div>
+                <div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-lg">
+                    <form id="jewellery-order-form">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Full Name -->
+                            <div>
+                                <label for="fullName" class="block text-sm font-medium text-gray-700 mb-1">आपका नाम</label>
+                                <input type="text" id="fullName" name="fullName" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-gold focus:border-gold">
+                            </div>
+                            <!-- Phone Number -->
+                            <div>
+                                <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">फ़ोन नंबर</label>
+                                <input type="tel" id="phone" name="phone" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-gold focus:border-gold">
+                            </div>
                         </div>
-                    </div>
-                    <!-- Collection Card 2 -->
-                    <div class="collection-card group relative overflow-hidden rounded-lg shadow-lg">
-                        <img src="earring1.jpg" alt="Earrings" class="w-full h-full object-cover transition-transform duration-500 ease-in-out">
-                        <div class="collection-overlay absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 transition-opacity duration-500">
-                            <h3 class="text-white font-playfair text-3xl font-bold">Earrings</h3>
+                        <!-- Address -->
+                        <div class="mt-6">
+                            <label for="address" class="block text-sm font-medium text-gray-700 mb-1">आपका पता</label>
+                            <input type="text" id="address" name="address" rows="3" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-gold focus:border-gold">
                         </div>
-                    </div>
-                    <!-- Collection Card 3 -->
-                    <div class="collection-card group relative overflow-hidden rounded-lg shadow-lg">
-                        <img src="goldenbracelet2.jpg" alt="Bracelets" class="w-full h-full object-cover transition-transform duration-500 ease-in-out">
-                        <div class="collection-overlay absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 transition-opacity duration-500">
-                            <h3 class="text-white font-playfair text-3xl font-bold">Bracelets</h3>
+                        <!-- Product of Interest -->
+                        <!-- <div class="mt-6">
+                            <label for="product" class="block text-sm font-medium text-gray-700 mb-1">क्या ख़रीदना चाहते हैं</label>
+                            <input type="text" id="product" name="product" placeholder="e.g., Gold Necklace, Diamond Ring" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-gold focus:border-gold">
+                        </div> -->
+                        <!-- Special Notes -->
+                        <div class="mt-6">
+                            <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">क्या ख़रीदना चाहते हैं ?</label>
+                            <textarea id="notes" name="notes" rows="3" placeholder="पूरा विवरण लिखें ।" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-gold focus:border-gold"></textarea>
                         </div>
-                    </div>
-                    <!-- Collection Card 4 -->
-                    <div class="collection-card group relative overflow-hidden rounded-lg shadow-lg">
-                        <img src="goldRing1.jpg" alt="Rings" class="w-full h-full object-cover transition-transform duration-500 ease-in-out">
-                        <div class="collection-overlay absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 transition-opacity duration-500">
-                            <h3 class="text-white font-playfair text-3xl font-bold">Rings</h3>
+                        <!-- Submit Button -->
+                        <div class="mt-8 text-center">
+                            <button type="submit" class="bg-maroon text-white font-bold py-3 px-10 rounded-full hover:bg-opacity-90 transition-all w-full md:w-auto">ऑर्डर करे</button>
                         </div>
-                    </div>
+                    </form>
+                    <p id="form-success-message" class="text-center text-green-600 mt-4 hidden"></p>
                 </div>
             </div>
         </section>
 
         <!-- About Us Section -->
-        <section id="about" class="py-20 bg-stone-100">
+        <section id="about" class="py-20 bg-white">
             <div class="container mx-auto px-6 flex flex-col md:flex-row items-center gap-12">
-                <div class="md:w-1/2">
-                    <img src="craftsmanship.jpg" alt="गौरांगी ज्वैलर्स Store" class="rounded-lg shadow-xl">
-                </div>
-                <div class="md:w-1/2">
-                    <h2 class="font-playfair text-4xl font-bold mb-4 text-gray-800">The Heart of Craftsmanship</h2>
-                    <p class="text-gray-600 mb-4">Since 1960, गौरांगी ज्वैलर्स has been a symbol of trust and artistry. Our journey began with a vision to create jewellery that isn't just an accessory, but a legacy. Each piece is a testament to the skill of our master craftsmen, blending traditional techniques with contemporary designs.</p>
-                    <p class="text-gray-600">We believe in the beauty of detail and the promise of quality, ensuring every gem and metal is sourced responsibly and crafted to perfection.</p>
-                </div>
+                <div class="md:w-1/2"><img src="craftsmanship.jpg" alt="गौरांगी ज्वैलर्स Store" class="rounded-lg shadow-xl"></div>
+                <div class="md:w-1/2"><h2 class="font-playfair text-4xl font-bold mb-4 text-gray-800">
+शिल्प कौशल का हृदय</h2><p class="text-gray-600 mb-4">1960 से, गौरांगी ज्वैलर्स विश्वास और कला का प्रतीक रहा है। हमारी यात्रा की शुरुआत एक ऐसे सपने से हुई, जिसमें आभूषण केवल एक सजावट नहीं, बल्कि एक विरासत हों। हर एक गहना हमारे कुशल कारीगरों की निपुणता का प्रमाण है, जो पारंपरिक तकनीकों को आधुनिक डिज़ाइन के साथ बखूबी मिलाते हैं।</p><p class="text-gray-600">हम बारीकियों की खूबसूरती और गुणवत्ता के वादे में विश्वास रखते हैं, यह सुनिश्चित करते हुए कि हर रत्न और धातु को जिम्मेदारी से चुना जाए और बेमिसाल उत्कृष्टता के साथ तैयार किया जाए।</p></div>
             </div>
         </section>
 
         <!-- Promotions Section -->
-        <section id="promotions" class="py-20">
-            <div class="container mx-auto px-6 text-center">
-                 <h2 class="font-playfair text-4xl font-bold text-center mb-2 text-gray-800">Special Promotions</h2>
-                 <p class="text-center text-gray-500 mb-12 max-w-2xl mx-auto">Celebrate with us and enjoy exclusive offers on our finest collections.</p>
-                <div class="bg-amber-50 border-l-4 border-amber-500 text-amber-800 p-8 rounded-r-lg shadow-lg max-w-4xl mx-auto flex flex-col md:flex-row items-center gap-8">
-                     <div class="flex-shrink-0">
-                        <svg class="w-16 h-16 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path></svg>
-                    </div>
-                    <div class="text-left">
-                        <h3 class="font-playfair text-2xl font-bold mb-2">Festive Season Offer!</h3>
-                        <p class="text-lg">Get a <span class="font-bold">3-5% discount</span> on all gold jewellery. A perfect time to add a sparkle to your celebrations. Offer valid for a limited time.</p>
-                    </div>
-                </div>
-            </div>
+        <section id="promotions" class="py-20 bg-maroon text-white">
+            <div class="container mx-auto px-6 text-center"><h2 class="font-playfair text-4xl font-bold text-center mb-2">Special Promotions</h2><p class="text-center text-gray-200 mb-12 max-w-2xl mx-auto">हमारे साथ जश्न मनाएं और हमारी बेहतरीन कलेक्शन पर पाएं विशेष ऑफ़र।</p><div class="bg-black/10 border border-gold/30 p-8 rounded-lg max-w-4xl mx-auto flex flex-col md:flex-row items-center gap-8"><div class="flex-shrink-0"><svg class="w-16 h-16 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path></svg></div><div class="text-left"><h3 class="font-playfair text-2xl font-bold mb-2">Festive Season Offer!</h3><p class="text-lg">Get a <span class="font-bold">3-5% discount</span> सभी स्वर्ण आभूषणों पर। अपने उत्सव में चमक जोड़ने का यह सुनहरा अवसर। ऑफ़र सीमित समय के लिए मान्य।</p></div></div></div>
         </section>
 
         <!-- Testimonials Section -->
         <section class="py-20 bg-white">
-            <div class="container mx-auto px-6">
-                <h2 class="font-playfair text-4xl font-bold text-center mb-12 text-gray-800">Words of Trust</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-                    <!-- Testimonial 1 -->
-                    <div class="bg-stone-50 p-8 rounded-lg shadow-md">
-                        <p class="text-gray-600 mb-4">"The craftsmanship is breathtaking. My wedding necklace from गौरांगी ज्वैलर्स is something I will cherish forever. Absolutely stunning!"</p>
-                        <p class="font-bold text-amber-800">- Priya Sharma</p>
-                    </div>
-                    <!-- Testimonial 2 -->
-                    <div class="bg-stone-50 p-8 rounded-lg shadow-md">
-                        <p class="text-gray-600 mb-4">"Excellent customer service and a beautiful collection. They helped me find the perfect anniversary gift for my wife. Highly recommended."</p>
-                        <p class="font-bold text-amber-800">- Rohan Gupta</p>
-                    </div>
-                    <!-- Testimonial 3 -->
-                    <div class="bg-stone-50 p-8 rounded-lg shadow-md">
-                        <p class="text-gray-600 mb-4">"I love their modern designs. The pieces are elegant, unique, and perfect for any occasion. गौरांगी ज्वैलर्स is my go-to jeweller."</p>
-                        <p class="font-bold text-amber-800">- Anjali Mehta</p>
-                    </div>
-                </div>
-            </div>
+            <div class="container mx-auto px-6"><h2 class="font-playfair text-4xl font-bold text-center mb-12 text-gray-800">Words of Trust</h2><div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center"><div class="bg-stone-50 p-8 rounded-lg shadow-md"><p class="text-gray-600 mb-4">"इनकी कारीगरी दिल को छू लेने वाली है। मेरी शादी का हार, जो मैंने गौरांगी ज्वैलर्स से लिया था, मैं हमेशा संजोकर रखूँगी। यह वाकई अद्भुत है!"</p><p class="font-bold text-amber-800">- Priya Sharma</p></div><div class="bg-stone-50 p-8 rounded-lg shadow-md"><p class="text-gray-600 mb-4">"Excellent customer service and a beautiful collection. They helped me find the perfect anniversary gift for my wife. Highly recommended."</p><p class="font-bold text-amber-800">- Devesh Singh</p></div><div class="bg-stone-50 p-8 rounded-lg shadow-md"><p class="text-gray-600 mb-4">"मुझे इनके आधुनिक डिज़ाइन बहुत पसंद हैं। इनके आभूषण सुरुचिपूर्ण, अद्वितीय और हर अवसर के लिए उपयुक्त हैं। गौरांगी ज्वैलर्स मेरे लिए हमेशा पहली पसंद है।"</p><p class="font-bold text-amber-800">- Ekta Chandrakar</p></div></div></div>
+        </section>
+        
+        <!-- Location Section -->
+        <section id="location" class="py-20">
+            <div class="container mx-auto px-6"><h2 class="font-playfair text-4xl font-bold text-center mb-12 text-gray-800">Our Location</h2><div class="rounded-lg overflow-hidden shadow-lg border border-gray-200"><iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1497.1465177351986!2d81.32511680451904!3d22.003461427739254!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a29b9b593885ebd%3A0xd731301a5ca9be26!2sGawrangi%20Jewellers!5e0!3m2!1sen!2sin!4v1755073125471!5m2!1sen!2sin" class="w-full" height="400" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div></div>
         </section>
     </main>
 
@@ -238,67 +219,82 @@
     <footer id="contact" class="bg-gray-800 text-white">
         <div class="container mx-auto px-6 py-12">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <!-- About -->
-                <div class="md:col-span-1">
-                    <h3 class="font-brand text-2xl font-bold mb-4">गौरांगी ज्वैलर्स</h3>
-                    <p class="text-gray-400">Crafting timeless elegance since 1960. We are dedicated to providing you with jewellery that celebrates life's most precious moments.</p>
-                </div>
-                <!-- Quick Links -->
-                <div>
-                    <h3 class="text-xl font-semibold mb-4">Quick Links</h3>
-                    <ul class="space-y-2">
-                        <li><a href="#home" class="text-gray-400 hover:text-white">Home</a></li>
-                        <li><a href="#collections" class="text-gray-400 hover:text-white">Collections</a></li>
-                        <li><a href="#about" class="text-gray-400 hover:text-white">About Us</a></li>
-                        <li><a href="#promotions" class="text-gray-400 hover:text-white">Promotions</a></li>
-                    </ul>
-                </div>
-                <!-- Contact Info -->
-                <div>
-                    <h3 class="text-xl font-semibold mb-4">Contact Us</h3>
-                    <p class="text-gray-400 mb-2 font-brand">सरस्वती शिशु मंदिर स्कूल के आगे, पंछी साड़ी सेंटर के सामने, पिपरिया कवर्धा (491995)</p>
-                    <p class="text-gray-400 mb-2">Email: gawrangi.jewellers@gmail.com</p>
-                    <p class="text-gray-400">Phone: +91 9329558080</p>
-                    <div class="flex space-x-4 mt-4">
-                        <a href="https://www.facebook.com/share/1D1SoToz1f/" class="text-gray-400 hover:text-white"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clip-rule="evenodd" /></svg></a>
-                        <!-- <a href="#" class="text-gray-400 hover:text-white"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.71v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" /></svg></a> -->
-                        <a href="https://www.instagram.com/gawrangi_jewellers?igsh=OTh5b29tbWR0YXl4" class="text-gray-400 hover:text-white"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.024.06 1.378.06 3.808s-.012 2.784-.06 3.808c-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.024.048-1.378.06-3.808.06s-2.784-.013-3.808-.06c-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.048-1.024-.06-1.378-.06-3.808s.012-2.784.06-3.808c.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 016.345 2.525c.636-.247 1.363-.416 2.427-.465C9.793 2.013 10.148 2 12.315 2zm-1.161 2.043c-1.049.045-1.69.21-2.227.427A3.396 3.396 0 006.92 6.16a3.396 3.396 0 00-.427 2.227c-.045 1.048-.06 1.374-.06 3.613s.015 2.565.06 3.613c.045 1.049.21 1.69.427 2.227a3.396 3.396 0 001.67 1.67c.537.217 1.178.382 2.227.427 1.049.045 1.374.06 3.613.06s2.565-.015 3.613-.06c1.049-.045 1.69-.21 2.227-.427a3.396 3.396 0 001.67-1.67c.217-.537.382-1.178.427-2.227.045-1.048.06-1.374.06-3.613s-.015-2.565-.06-3.613c-.045-1.049-.21-1.69-.427-2.227a3.396 3.396 0 00-1.67-1.67c-.537-.217-1.178-.382-2.227-.427-1.049-.045-1.374-.06-3.613-.06s-2.565.015-3.613.06zM12 16a4 4 0 110-8 4 4 0 010 8zm0-2a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg></a>
-                    </div>
-                </div>
+                <div class="md:col-span-1"><h3 class="font-brand text-2xl font-bold mb-4">गौरांगी ज्वैलर्स</h3><p class="text-gray-400">1960 से अनंत सौंदर्य की रचना। हम ऐसे आभूषण गढ़ते हैं जो जीवन के अनमोल पलों को सदा के लिए अमर बना दें।</p></div>
+                <div><h3 class="text-xl font-semibold mb-4">Quick Links</h3><ul class="space-y-2"><li><a href="#home" class="text-gray-400 hover:text-white">Home</a></li><li><a href="#collections" class="text-gray-400 hover:text-white">Collections</a></li><li><a href="#about" class="text-gray-400 hover:text-white">About Us</a></li><li><a href="#promotions" class="text-gray-400 hover:text-white">Promotions</a></li></ul></div>
+                <div><h3 class="text-xl font-semibold mb-4">Contact Us</h3><p class="text-gray-400 mb-2 font-brand">सरस्वती शिशु मंदिर स्कूल के आगे, पंछी साड़ी सेंटर के सामने, पिपरिया कवर्धा (491995)</p><p class="text-gray-400 mb-2">Email: gawrangi.jewellers@gmail.com</p><p class="text-gray-400">Phone: +91 9329558080</p><div class="flex space-x-4 mt-4"><a href="https://www.facebook.com/share/1D1SoToz1f/" class="text-gray-400 hover:text-white"><svg class="w-6 h-6" fill="#1877F2" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clip-rule="evenodd" /></svg></a><a href="https://wa.me/919329558080?text=Hello%2C%20I%20am%20interested%20in%20your%20jewellery." target="_blank" rel="noopener noreferrer" class="text-green-400 hover:text-white" aria-label="Contact us on WhatsApp"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" class="w-6 h-6"><path fill-rule="evenodd" fill="currentColor" d="M16.003 4.438a11.563 11.563 0 0 0-11.563 11.562c0 3.14.963 5.88 2.812 8.24l-3.12 6.633 6.81-3.08c2.2.93 4.65.93 6.84.01l.02.01c6.38-.01 11.56-5.19 11.56-11.57a11.562 11.562 0 0 0-11.56-11.56Zm0 21.44a9.87 9.87 0 0 1-5.23-1.52l-.38-.22-3.9 1.76 1.8-3.8-.25-.4a9.87 9.87 0 0 1-1.56-5.26c0-5.44 4.42-9.86 9.87-9.86s9.86 4.42 9.86 9.86-4.41 9.86-9.86 9.86Zm5.2-6.83c-.28-.14-1.64-.81-1.9-1.02-.25-.14-.44-.22-.62.14-.18.36-.72.81-.88 1.02-.16.21-.32.23-.6.09-.28-.14-1.18-.44-2.25-1.39-1.07-.95-1.52-1.7-1.8-2.25-.28-.55-.01-.85.13-1.14.13-.13.28-.36.42-.54.14-.18.18-.3-.04-.54s-.62-1.5-.85-2.05c-.23-.55-.46-.48-.62-.48-.16 0-.35-.02-.53-.02s-.45.07-.7.36c-.25.28-.96.93-1.2 1.95-.24 1.02.1 1.9.2 2.05.14.16 1.2 1.8 2.9 2.55.45.2.7.3.9.4.45.2.8.16 1.1.1.3-.06.96-.4 1.1-.78.13-.38.13-.7.1-.78-.04-.08-.13-.13-.28-.22Z" clip-rule="evenodd"/></svg></a><a href="https://www.instagram.com/gawrangi_jewellers?igsh=OTh5b29tbWR0YXl4" class="text-gray-400 hover:text-white"><svg class="w-6 h-6" fill="#E1306C" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.024.06 1.378.06 3.808s-.012 2.784-.06 3.808c-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.024.048-1.378.06-3.808.06s-2.784-.013-3.808-.06c-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.048-1.024-.06-1.378-.06-3.808s.012-2.784.06-3.808c.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 016.345 2.525c.636-.247 1.363-.416 2.427-.465C9.793 2.013 10.148 2 12.315 2zm-1.161 2.043c-1.049.045-1.69.21-2.227.427A3.396 3.396 0 006.92 6.16a3.396 3.396 0 00-.427 2.227c-.045 1.048-.06 1.374-.06 3.613s.015 2.565.06 3.613c.045 1.049.21 1.69.427 2.227a3.396 3.396 0 001.67 1.67c.537.217 1.178.382 2.227.427 1.049.045 1.374.06 3.613.06s2.565-.015 3.613-.06c1.049-.045 1.69-.21 2.227-.427a3.396 3.396 0 001.67-1.67c.217-.537.382-1.178.427-2.227.045-1.048.06-1.374.06-3.613s-.015-2.565-.06-3.613c-.045-1.049-.21-1.69-.427-2.227a3.396 3.396 0 00-1.67-1.67c-.537-.217-1.178-.382-2.227-.427-1.049-.045-1.374-.06-3.613-.06s-2.565.015-3.613.06zM12 16a4 4 0 110-8 4 4 0 010 8zm0-2a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg></a></div></div>
             </div>
-            <div class="mt-8 border-t border-gray-700 pt-8 text-center text-gray-400">
-                <p>&copy; 2025 गौरांगी ज्वैलर्स. All Rights Reserved.</p>
-            </div>
+            <div class="mt-8 border-t border-gray-700 pt-8 text-center text-gray-400"><p>&copy; 2025 गौरांगी ज्वैलर्स. All Rights Reserved.</p></div>
         </div>
     </footer>
 
     <!-- WhatsApp Floating Button -->
-    <a href="https://wa.me/919329558080?text=Hello%2C%20I%20am%20interested%20in%20your%20jewellery." 
-       target="_blank" 
-       rel="noopener noreferrer" 
-       class="whatsapp-float" 
-       aria-label="Contact us on WhatsApp">
+    <a href="https://wa.me/919329558080?text=Hello%2C%20I%20am%20interested%20in%20your%20jewellery." target="_blank" rel="noopener noreferrer" class="whatsapp-float" aria-label="Contact us on WhatsApp">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" class="w-8 h-8"><path fill="currentColor" d="M16.003 4.438a11.563 11.563 0 0 0-11.563 11.562c0 3.14.963 5.88 2.812 8.24l-3.12 6.633 6.81-3.08c2.2.93 4.65.93 6.84.01l.02.01c6.38-.01 11.56-5.19 11.56-11.57a11.562 11.562 0 0 0-11.56-11.56Zm0 21.44a9.87 9.87 0 0 1-5.23-1.52l-.38-.22-3.9 1.76 1.8-3.8-.25-.4a9.87 9.87 0 0 1-1.56-5.26c0-5.44 4.42-9.86 9.87-9.86s9.86 4.42 9.86 9.86-4.41 9.86-9.86 9.86Zm5.2-6.83c-.28-.14-1.64-.81-1.9-1.02-.25-.14-.44-.22-.62.14-.18.36-.72.81-.88 1.02-.16.21-.32.23-.6.09-.28-.14-1.18-.44-2.25-1.39-1.07-.95-1.52-1.7-1.8-2.25-.28-.55-.01-.85.13-1.14.13-.13.28-.36.42-.54.14-.18.18-.3-.04-.54s-.62-1.5-.85-2.05c-.23-.55-.46-.48-.62-.48-.16 0-.35-.02-.53-.02s-.45.07-.7.36c-.25.28-.96.93-1.2 1.95-.24 1.02.1 1.9.2 2.05.14.16 1.2 1.8 2.9 2.55.45.2.7.3.9.4.45.2.8.16 1.1.1.3-.06.96-.4 1.1-.78.13-.38.13-.7.1-.78-.04-.08-.13-.13-.28-.22Z"/></svg>
     </a>
 
     <script>
-        // Mobile menu toggle
+        // --- Mobile menu toggle ---
         const mobileMenuButton = document.getElementById('mobile-menu-button');
         const mobileMenu = document.getElementById('mobile-menu');
-
         mobileMenuButton.addEventListener('click', () => {
             mobileMenu.classList.toggle('hidden');
         });
 
-        // Smooth scrolling for anchor links
+        // --- Smooth scrolling for anchor links ---
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
-                mobileMenu.classList.add('hidden'); // Close mobile menu on link click
-                document.querySelector(this.getAttribute('href')).scrollIntoView({
-                    behavior: 'smooth'
-                });
+                if (!mobileMenu.classList.contains('hidden')) {
+                    mobileMenu.classList.add('hidden');
+                }
+                const targetElement = document.querySelector(this.getAttribute('href'));
+                if (targetElement) {
+                    targetElement.scrollIntoView({ behavior: 'smooth' });
+                }
             });
+        });
+
+        // --- Order Form WhatsApp Submission ---
+        const orderForm = document.getElementById('jewellery-order-form');
+        const successMessage = document.getElementById('form-success-message');
+
+        orderForm.addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent the form from submitting the traditional way
+
+            // 1. Get data from the form
+            const formData = new FormData(orderForm);
+            const fullName = formData.get('fullName');
+            const phone = formData.get('phone');
+            const address = formData.get('address');
+            const notes = formData.get('notes');
+
+            // 2. Format the message for WhatsApp
+            let message = `*New Order Request from Website*\n\n`;
+            message += `*Customer Name:* ${fullName}\n`;
+            message += `*Phone Number:* ${phone}\n`;
+            message += `*Shipping Address:* ${address}\n`;
+            if (notes) {
+                message += `*Notes:* ${notes}\n`;
+            }
+
+            // 3. URL-encode the message
+            const encodedMessage = encodeURIComponent(message);
+
+            // 4. Construct the WhatsApp URL
+            const whatsappURL = `https://wa.me/919329558080?text=${encodedMessage}`;
+
+            // 5. Open WhatsApp in a new tab
+            window.open(whatsappURL, '_blank');
+
+            // 6. Show a success message and reset the form
+            successMessage.textContent = 'Thank you! Redirecting to WhatsApp to send your order...';
+            successMessage.classList.remove('hidden');
+            orderForm.reset();
+
+            // Hide the success message after a few seconds
+            setTimeout(() => {
+                successMessage.classList.add('hidden');
+            }, 5000);
         });
     </script>
 
