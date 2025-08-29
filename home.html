@@ -6,12 +6,12 @@
     <title>गौरांगी ज्वैलर्स - Exquisite Jewellery & Timeless Elegance</title>
     <link rel="icon" type="image/x-icon" href="gaurangi.ico">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&family=Noto+Sans+Devanagari:wght@700&display=swap" rel="stylesheet">
     <style>
-        /* Custom color variables and styles */
         :root {
-            --maroon: #800020; /* A deep, rich maroon */
-            --gold: #D4AF37;   /* An elegant, classic gold */
+            --maroon: #800020;
+            --gold: #D4AF37;
             --off-white: #FDFBF5;
             --dark-text: #3D3D3D;
         }
@@ -20,78 +20,42 @@
             background-color: var(--off-white);
             color: var(--dark-text);
         }
-        .font-playfair {
-            font-family: 'Playfair Display', serif;
-        }
-        .font-brand {
-            font-family: 'Noto Sans Devanagari', sans-serif;
-        }
+        .font-playfair { font-family: 'Playfair Display', serif; }
+        .font-brand { font-family: 'Noto Sans Devanagari', sans-serif; }
         .bg-maroon { background-color: var(--maroon); }
         .text-maroon { color: var(--maroon); }
         .bg-gold { background-color: var(--gold); }
         .text-gold { color: var(--gold); }
         .border-gold { border-color: var(--gold); }
-
         .hero-bg {
             background-image: url('https://placehold.co/1600x900/1a1a1a/f0e68c?text=Gawrangi+Jewellers');
             background-size: cover;
             background-position: center;
         }
-
-        .transition-all {
-            transition: all 0.3s ease-in-out;
-        }
-        
-        .nav-link {
-            position: relative;
-            padding-bottom: 4px;
-        }
+        .transition-all { transition: all 0.3s ease-in-out; }
+        .nav-link { position: relative; padding-bottom: 4px; }
         .nav-link::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background-color: var(--gold);
+            content: ''; position: absolute; bottom: 0; left: 0;
+            width: 0; height: 2px; background-color: var(--gold);
             transition: width 0.3s ease;
         }
-        .nav-link:hover::after {
-            width: 100%;
-        }
-
-        .collection-card:hover .collection-overlay {
-            opacity: 1;
-        }
-        .collection-card:hover img {
-            transform: scale(1.05);
-        }
-        
+        .nav-link:hover::after { width: 100%; }
+        .collection-card:hover .collection-overlay { opacity: 1; }
+        .collection-card:hover img { transform: scale(1.05); }
         .whatsapp-float {
-            position: fixed;
-            width: 60px;
-            height: 60px;
-            bottom: 40px;
-            right: 40px;
-            background-color: #25D366;
-            color: #FFF;
-            border-radius: 50px;
-            text-align: center;
-            box-shadow: 2px 2px 6px rgba(0,0,0,0.2);
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            position: fixed; width: 60px; height: 60px;
+            bottom: 40px; right: 40px; background-color: #25D366;
+            color: #FFF; border-radius: 50px; text-align: center;
+            box-shadow: 2px 2px 6px rgba(0,0,0,0.2); z-index: 100;
+            display: flex; align-items: center; justify-content: center;
             transition: transform 0.3s ease;
         }
-        .whatsapp-float:hover {
-            transform: scale(1.1);
-        }
+        .whatsapp-float:hover { transform: scale(1.1); }
     </style>
 </head>
 <body class="bg-stone-50 text-gray-800">
 
-    <!-- Header -->
+    <!-- Header and other sections remain the same -->
     <header class="bg-white shadow-md sticky top-0 z-50">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
             <a href="#home" class="flex items-center space-x-3 font-brand text-3xl font-bold text-amber-800 tracking-wider">
@@ -99,7 +63,7 @@
                 <span>गौरांगी ज्वैलर्स</span>
             </a>
             <nav class="hidden md:flex space-x-8 items-center">
-                <a href="#home" class="nav-link text-gray-600 hover:text-amber-700">Home</a>
+                <a href="admin.html" class="nav-link text-gray-600 hover:text-amber-700" target="_blank">Admin</a>
                 <a href="#collections" class="nav-link text-gray-600 hover:text-amber-700">Collections</a>
                 <a href="#order-form" class="nav-link text-gray-600 hover:text-amber-700">Order Now</a>
                 <a href="#about" class="nav-link text-gray-600 hover:text-amber-700">About Us</a>
@@ -121,7 +85,6 @@
     </header>
 
     <main>
-        <!-- Hero Section -->
         <section id="home" class="bg-off-white">
             <div class="container mx-auto px-6 py-32 md:py-48 text-center">
                 <h1 class="font-playfair text-6xl md:text-8xl font-bold text-maroon mb-4">Elegance, Redefined.</h1>
@@ -130,21 +93,20 @@
             </div>
         </section>
 
-        <!-- Collections Section -->
+        <!-- ▼▼▼ COLLECTIONS SECTION MODIFIED ▼▼▼ -->
         <section id="collections" class="py-20 bg-white">
             <div class="container mx-auto px-6">
                 <h2 class="font-playfair text-4xl font-bold text-center mb-2 text-gray-800">Our Collections</h2>
                 <p class="text-center text-gray-500 mb-12 max-w-2xl mx-auto">दुल्हन की भव्यता से लेकर रोज़मर्रा की सादगी तक, हमारे सुसज्जित संग्रह को देखें, जिसे हर पल का जश्न मनाने के लिए तैयार किया गया है।.</p>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                    <div class="collection-card group relative overflow-hidden rounded-lg shadow-lg"><img src="necklace1.jpg" alt="Necklaces" class="w-full h-full object-cover transition-transform duration-500 ease-in-out"><div class="collection-overlay absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 transition-opacity duration-500"><h3 class="text-white font-playfair text-3xl font-bold">Necklaces</h3></div></div>
-                    <div class="collection-card group relative overflow-hidden rounded-lg shadow-lg"><img src="earring1.jpg" alt="Earrings" class="w-full h-full object-cover transition-transform duration-500 ease-in-out"><div class="collection-overlay absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 transition-opacity duration-500"><h3 class="text-white font-playfair text-3xl font-bold">Earrings</h3></div></div>
-                    <div class="collection-card group relative overflow-hidden rounded-lg shadow-lg"><img src="goldenbracelet2.jpg" alt="Bracelets" class="w-full h-full object-cover transition-transform duration-500 ease-in-out"><div class="collection-overlay absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 transition-opacity duration-500"><h3 class="text-white font-playfair text-3xl font-bold">Bracelets</h3></div></div>
-                    <div class="collection-card group relative overflow-hidden rounded-lg shadow-lg"><img src="goldRing1.jpg" alt="Rings" class="w-full h-full object-cover transition-transform duration-500 ease-in-out"><div class="collection-overlay absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 transition-opacity duration-500"><h3 class="text-white font-playfair text-3xl font-bold">Rings</h3></div></div>
+                <!-- This grid will be filled dynamically by JavaScript -->
+                <div id="collections-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 min-h-[300px]">
+                    <!-- Loading placeholder -->
+                    <p id="loading-text" class="col-span-full text-center text-gray-500">Loading collections...</p>
                 </div>
             </div>
         </section>
+        <!-- ▲▲▲ END OF MODIFIED SECTION ▲▲▲ -->
 
-        <!-- Order Form Section -->
         <section id="order-form" class="py-20 bg-stone-100">
             <div class="container mx-auto px-6">
                 <div class="text-center mb-12">
@@ -154,62 +116,49 @@
                 <div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-lg">
                     <form id="jewellery-order-form">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- Full Name -->
                             <div>
                                 <label for="fullName" class="block text-sm font-medium text-gray-700 mb-1">आपका नाम</label>
                                 <input type="text" id="fullName" name="fullName" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-gold focus:border-gold">
                             </div>
-                            <!-- Phone Number -->
                             <div>
                                 <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">फ़ोन नंबर</label>
                                 <input type="tel" id="phone" name="phone" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-gold focus:border-gold">
                             </div>
                         </div>
-                        <!-- Address -->
                         <div class="mt-6">
                             <label for="address" class="block text-sm font-medium text-gray-700 mb-1">आपका पता</label>
-                            <input type="text" id="address" name="address" rows="3" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-gold focus:border-gold">
+                            <input type="text" id="address" name="address" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-gold focus:border-gold">
                         </div>
-                        <!-- Product of Interest -->
-                        <!-- <div class="mt-6">
-                            <label for="product" class="block text-sm font-medium text-gray-700 mb-1">क्या ख़रीदना चाहते हैं</label>
-                            <input type="text" id="product" name="product" placeholder="e.g., Gold Necklace, Diamond Ring" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-gold focus:border-gold">
-                        </div> -->
-                        <!-- Special Notes -->
                         <div class="mt-6">
                             <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">क्या ख़रीदना चाहते हैं ?</label>
                             <textarea id="notes" name="notes" rows="3" placeholder="पूरा विवरण लिखें ।" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-gold focus:border-gold"></textarea>
                         </div>
-                        <!-- Submit Button -->
                         <div class="mt-8 text-center">
-                            <button type="submit" class="bg-maroon text-white font-bold py-3 px-10 rounded-full hover:bg-opacity-90 transition-all w-full md:w-auto">ऑर्डर करे</button>
+                            <button type="submit" id="submit-button" class="bg-maroon text-white font-bold py-3 px-10 rounded-full hover:bg-opacity-90 transition-all w-full md:w-auto">ऑर्डर करे</button>
                         </div>
                     </form>
-                    <p id="form-success-message" class="text-center text-green-600 mt-4 hidden"></p>
+                    <p id="form-status-message" class="text-center mt-4"></p>
                 </div>
             </div>
         </section>
 
-        <!-- About Us Section -->
+        <!-- Other sections remain the same -->
         <section id="about" class="py-20 bg-white">
             <div class="container mx-auto px-6 flex flex-col md:flex-row items-center gap-12">
                 <div class="md:w-1/2"><img src="craftsmanship.jpg" alt="गौरांगी ज्वैलर्स Store" class="rounded-lg shadow-xl"></div>
                 <div class="md:w-1/2"><h2 class="font-playfair text-4xl font-bold mb-4 text-gray-800">
-शिल्प कौशल का हृदय</h2><p class="text-gray-600 mb-4">1960 से, गौरांगी ज्वैलर्स विश्वास और कला का प्रतीक रहा है। हमारी यात्रा की शुरुआत एक ऐसे सपने से हुई, जिसमें आभूषण केवल एक सजावट नहीं, बल्कि एक विरासत हों। हर एक गहना हमारे कुशल कारीगरों की निपुणता का प्रमाण है, जो पारंपरिक तकनीकों को आधुनिक डिज़ाइन के साथ बखूबी मिलाते हैं।</p><p class="text-gray-600">हम बारीकियों की खूबसूरती और गुणवत्ता के वादे में विश्वास रखते हैं, यह सुनिश्चित करते हुए कि हर रत्न और धातु को जिम्मेदारी से चुना जाए और बेमिसाल उत्कृष्टता के साथ तैयार किया जाए।</p></div>
+                शिल्प कौशल का हृदय</h2><p class="text-gray-600 mb-4">1960 से, गौरांगी ज्वैलर्स विश्वास और कला का प्रतीक रहा है। हमारी यात्रा की शुरुआत एक ऐसे सपने से हुई, जिसमें आभूषण केवल एक सजावट नहीं, बल्कि एक विरासत हों। हर एक गहना हमारे कुशल कारीगरों की निपुणता का प्रमाण है, जो पारंपरिक तकनीकों को आधुनिक डिज़ाइन के साथ बखूबी मिलाते हैं।</p><p class="text-gray-600">हम बारीकियों की खूबसूरती और गुणवत्ता के वादे में विश्वास रखते हैं, यह सुनिश्चित करते हुए कि हर रत्न और धातु को जिम्मेदारी से चुना जाए और बेमिसाल उत्कृष्टता के साथ तैयार किया जाए।</p></div>
             </div>
         </section>
 
-        <!-- Promotions Section -->
         <section id="promotions" class="py-20 bg-maroon text-white">
             <div class="container mx-auto px-6 text-center"><h2 class="font-playfair text-4xl font-bold text-center mb-2">Special Promotions</h2><p class="text-center text-gray-200 mb-12 max-w-2xl mx-auto">हमारे साथ जश्न मनाएं और हमारी बेहतरीन कलेक्शन पर पाएं विशेष ऑफ़र।</p><div class="bg-black/10 border border-gold/30 p-8 rounded-lg max-w-4xl mx-auto flex flex-col md:flex-row items-center gap-8"><div class="flex-shrink-0"><svg class="w-16 h-16 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path></svg></div><div class="text-left"><h3 class="font-playfair text-2xl font-bold mb-2">Festive Season Offer!</h3><p class="text-lg">Get a <span class="font-bold">3-5% discount</span> सभी स्वर्ण आभूषणों पर। अपने उत्सव में चमक जोड़ने का यह सुनहरा अवसर। ऑफ़र सीमित समय के लिए मान्य।</p></div></div></div>
         </section>
 
-        <!-- Testimonials Section -->
         <section class="py-20 bg-white">
             <div class="container mx-auto px-6"><h2 class="font-playfair text-4xl font-bold text-center mb-12 text-gray-800">Words of Trust</h2><div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center"><div class="bg-stone-50 p-8 rounded-lg shadow-md"><p class="text-gray-600 mb-4">"इनकी कारीगरी दिल को छू लेने वाली है। मेरी शादी का हार, जो मैंने गौरांगी ज्वैलर्स से लिया था, मैं हमेशा संजोकर रखूँगी। यह वाकई अद्भुत है!"</p><p class="font-bold text-amber-800">- Priya Sharma</p></div><div class="bg-stone-50 p-8 rounded-lg shadow-md"><p class="text-gray-600 mb-4">"Excellent customer service and a beautiful collection. They helped me find the perfect anniversary gift for my wife. Highly recommended."</p><p class="font-bold text-amber-800">- Devesh Singh</p></div><div class="bg-stone-50 p-8 rounded-lg shadow-md"><p class="text-gray-600 mb-4">"मुझे इनके आधुनिक डिज़ाइन बहुत पसंद हैं। इनके आभूषण सुरुचिपूर्ण, अद्वितीय और हर अवसर के लिए उपयुक्त हैं। गौरांगी ज्वैलर्स मेरे लिए हमेशा पहली पसंद है।"</p><p class="font-bold text-amber-800">- Ekta Chandrakar</p></div></div></div>
         </section>
         
-        <!-- Location Section -->
         <section id="location" class="py-20">
             <div class="container mx-auto px-6"><h2 class="font-playfair text-4xl font-bold text-center mb-12 text-gray-800">Our Location</h2><div class="rounded-lg overflow-hidden shadow-lg border border-gray-200"><iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1497.1465177351986!2d81.32511680451904!3d22.003461427739254!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a29b9b593885ebd%3A0xd731301a5ca9be26!2sGawrangi%20Jewellers!5e0!3m2!1sen!2sin!4v1755073125471!5m2!1sen!2sin" class="w-full" height="400" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div></div>
         </section>
@@ -227,75 +176,133 @@
         </div>
     </footer>
 
-    <!-- WhatsApp Floating Button -->
     <a href="https://wa.me/919329558080?text=Hello%2C%20I%20am%20interested%20in%20your%20jewellery." target="_blank" rel="noopener noreferrer" class="whatsapp-float" aria-label="Contact us on WhatsApp">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" class="w-8 h-8"><path fill="currentColor" d="M16.003 4.438a11.563 11.563 0 0 0-11.563 11.562c0 3.14.963 5.88 2.812 8.24l-3.12 6.633 6.81-3.08c2.2.93 4.65.93 6.84.01l.02.01c6.38-.01 11.56-5.19 11.56-11.57a11.562 11.562 0 0 0-11.56-11.56Zm0 21.44a9.87 9.87 0 0 1-5.23-1.52l-.38-.22-3.9 1.76 1.8-3.8-.25-.4a9.87 9.87 0 0 1-1.56-5.26c0-5.44 4.42-9.86 9.87-9.86s9.86 4.42 9.86 9.86-4.41 9.86-9.86 9.86Zm5.2-6.83c-.28-.14-1.64-.81-1.9-1.02-.25-.14-.44-.22-.62.14-.18.36-.72.81-.88 1.02-.16.21-.32.23-.6.09-.28-.14-1.18-.44-2.25-1.39-1.07-.95-1.52-1.7-1.8-2.25-.28-.55-.01-.85.13-1.14.13-.13.28-.36.42-.54.14-.18.18-.3-.04-.54s-.62-1.5-.85-2.05c-.23-.55-.46-.48-.62-.48-.16 0-.35-.02-.53-.02s-.45.07-.7.36c-.25.28-.96.93-1.2 1.95-.24 1.02.1 1.9.2 2.05.14.16 1.2 1.8 2.9 2.55.45.2.7.3.9.4.45.2.8.16 1.1.1.3-.06.96-.4 1.1-.78.13-.38.13-.7.1-.78-.04-.08-.13-.13-.28-.22Z"/></svg>
     </a>
 
+    <!-- ▼▼▼ SCRIPT BLOCK MODIFIED ▼▼▼ -->
     <script>
-        // --- Mobile menu toggle ---
-        const mobileMenuButton = document.getElementById('mobile-menu-button');
-        const mobileMenu = document.getElementById('mobile-menu');
-        mobileMenuButton.addEventListener('click', () => {
-            mobileMenu.classList.toggle('hidden');
-        });
+        document.addEventListener('DOMContentLoaded', function() {
+    
+            // --- CONFIGURATION ---
+            const SUPABASE_URL = 'https://lyuaqxdzilptauihsfyf.supabase.co'; 
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5dWFxeGR6aWxwdGF1aWhzZnlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU1ODQ2OTUsImV4cCI6MjA3MTE2MDY5NX0.Sf5skwobAoV26pHks6EeS2__aDVM3o5mT7Ensp6HIxQ';
+            const BUCKET_NAME = 'catalog-images';
+    
+            const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // --- Smooth scrolling for anchor links ---
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                if (!mobileMenu.classList.contains('hidden')) {
-                    mobileMenu.classList.add('hidden');
-                }
-                const targetElement = document.querySelector(this.getAttribute('href'));
-                if (targetElement) {
-                    targetElement.scrollIntoView({ behavior: 'smooth' });
-                }
+            // --- Mobile menu toggle ---
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            if (mobileMenuButton) {
+                mobileMenuButton.addEventListener('click', () => {
+                    mobileMenu.classList.toggle('hidden');
+                });
+            }
+    
+            // --- Smooth scrolling for anchor links ---
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
+                        mobileMenu.classList.add('hidden');
+                    }
+                    const targetElement = document.querySelector(this.getAttribute('href'));
+                    if (targetElement) {
+                        targetElement.scrollIntoView({ behavior: 'smooth' });
+                    }
+                });
             });
-        });
-
-        // --- Order Form WhatsApp Submission ---
-        const orderForm = document.getElementById('jewellery-order-form');
-        const successMessage = document.getElementById('form-success-message');
-
-        orderForm.addEventListener('submit', function(e) {
-            e.preventDefault(); // Prevent the form from submitting the traditional way
-
-            // 1. Get data from the form
-            const formData = new FormData(orderForm);
-            const fullName = formData.get('fullName');
-            const phone = formData.get('phone');
-            const address = formData.get('address');
-            const notes = formData.get('notes');
-
-            // 2. Format the message for WhatsApp
-            let message = `*New Order Request from Website*\n\n`;
-            message += `*Customer Name:* ${fullName}\n`;
-            message += `*Phone Number:* ${phone}\n`;
-            message += `*Shipping Address:* ${address}\n`;
-            if (notes) {
-                message += `*Notes:* ${notes}\n`;
+            
+            // --- Supabase Order Form Submission ---
+            const orderForm = document.getElementById('jewellery-order-form');
+            if (orderForm) {
+                orderForm.addEventListener('submit', async function(e) {
+                    e.preventDefault(); 
+                    const submitButton = document.getElementById('submit-button');
+                    const statusMessage = document.getElementById('form-status-message');
+                    
+                    submitButton.disabled = true;
+                    submitButton.textContent = 'Submitting...';
+                    statusMessage.textContent = '';
+                    
+                    const formData = new FormData(orderForm);
+                    const orderData = {
+                        fullName: formData.get('fullName'),
+                        phone: formData.get('phone'),
+                        address: formData.get('address'),
+                        notes: formData.get('notes'),
+                    };
+    
+                    const { data, error } = await supabaseClient
+                        .from('orders')
+                        .insert([orderData]);
+    
+                    if (error) {
+                        console.error('Error submitting order:', error);
+                        statusMessage.textContent = 'Failed to submit order. Please try again.';
+                        statusMessage.className = 'text-center mt-4 text-red-600';
+                    } else {
+                        statusMessage.textContent = 'Thank you! Your order has been received.';
+                        statusMessage.className = 'text-center mt-4 text-green-600';
+                        orderForm.reset(); 
+                    }
+                    
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'ऑर्डर करे';
+                    setTimeout(() => { statusMessage.textContent = ''; }, 5000);
+                });
             }
 
-            // 3. URL-encode the message
-            const encodedMessage = encodeURIComponent(message);
+            // --- NEW: Fetch and Display Catalog Images ---
+            const fetchAndDisplayCatalog = async () => {
+                const collectionsGrid = document.getElementById('collections-grid');
+                const loadingText = document.getElementById('loading-text');
 
-            // 4. Construct the WhatsApp URL
-            const whatsappURL = `https://wa.me/919329558080?text=${encodedMessage}`;
+                const { data, error } = await supabaseClient.storage.from(BUCKET_NAME).list('', {
+                    limit: 20, // Fetch up to 20 images
+                    sortBy: { column: 'created_at', order: 'desc' },
+                });
 
-            // 5. Open WhatsApp in a new tab
-            window.open(whatsappURL, '_blank');
+                if (error) {
+                    console.error('Error fetching catalog images:', error);
+                    loadingText.textContent = 'Could not load collections.';
+                    return;
+                }
 
-            // 6. Show a success message and reset the form
-            successMessage.textContent = 'Thank you! Redirecting to WhatsApp to send your order...';
-            successMessage.classList.remove('hidden');
-            orderForm.reset();
+                const validImages = data.filter(img => img.name !== '.emptyFolderPlaceholder');
 
-            // Hide the success message after a few seconds
-            setTimeout(() => {
-                successMessage.classList.add('hidden');
-            }, 5000);
-        });
+                if (validImages.length === 0) {
+                    loadingText.textContent = 'No collections to display yet.';
+                    return;
+                }
+                
+                // Clear the loading text
+                collectionsGrid.innerHTML = ''; 
+
+                validImages.forEach(image => {
+                    const { data: { publicUrl } } = supabaseClient.storage.from(BUCKET_NAME).getPublicUrl(image.name);
+                    
+                    // Parse the filename for details
+                    const nameParts = image.name.split('_');
+                    const category = nameParts[0] ? nameParts[0].charAt(0).toUpperCase() + nameParts[0].slice(1) : 'Jewellery';
+                    const title = nameParts[1] ? nameParts[1].replace(/-/g, ' ') : 'Exquisite Piece';
+
+                    const cardHtml = `
+                        <div class="collection-card group relative overflow-hidden rounded-lg shadow-lg h-80">
+                            <img src="${publicUrl}" alt="${title}" class="w-full h-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-105">
+                            <div class="collection-overlay absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 transition-opacity duration-500">
+                                <h3 class="text-white font-playfair text-3xl font-bold text-center px-4">${category}</h3>
+                            </div>
+                        </div>
+                    `;
+                    collectionsGrid.innerHTML += cardHtml;
+                });
+            };
+
+            // Initial call to load the catalog
+            fetchAndDisplayCatalog();
+        }); 
     </script>
 
 </body>
