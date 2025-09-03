@@ -139,16 +139,47 @@
         <main class="container mx-auto p-4 md:p-6">
             <div class="border-b border-gray-200 mb-6">
                 <nav class="-mb-px flex space-x-6 overflow-x-auto" aria-label="Tabs">
-                    <button id="orders-tab" type="button" class="tab-btn-active whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Orders</button>
-                    <button id="inventory-tab" type="button" class="tab-btn-inactive whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Inventory</button>
+                    <button id="inventory-tab" type="button" class="tab-btn-active whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Inventory</button>
+                    <button id="orders-tab" type="button" class="tab-btn-inactive whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Orders</button>
+                    <button id="analytics-tab" type="button" class="tab-btn-inactive whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Analytics</button> 
                     <button id="catalog-tab" type="button" class="tab-btn-inactive whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Catalog</button>
                     <button id="categories-tab" type="button" class="tab-btn-inactive whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Categories</button>
                     <button id="rates-tab" type="button" class="tab-btn-inactive whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Rates</button>
                 </nav>
             </div>
 
+            
+            
+            <!-- Inventory Section -->
+            <section id="inventory-content">
+                <div class="flex flex-col md:flex-row justify-between md:items-center mb-4 gap-4">
+                    <h2 class="font-playfair text-2xl font-bold text-gray-800">Inventory</h2>
+                    <div class="flex items-center gap-2">
+                         <form id="inventory-search-form" class="flex-grow flex gap-2">
+                            <input type="text" id="inventory-search-input" placeholder="Search by Item ID or Name..." class="w-full md:w-64 form-input">
+                            <button type="submit" class="btn btn-maroon">Search</button><button type="button" id="inventory-clear-search-btn" class="btn btn-outline">Clear</button>
+                        </form>
+                        <button id="add-inventory-item-btn" class="btn btn-maroon">Add Item</button>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow-md overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-gray-50 border-b">
+                            <tr>
+                                <th class="table-cell font-semibold">Item Name</th><th class="table-cell font-semibold">Category</th><th class="table-cell font-semibold">Stock</th><th class="table-cell font-semibold">Item Value</th><th class="table-cell font-semibold">Pending to Supplier</th><th class="table-cell font-semibold">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-table-body"></tbody>
+                    </table>
+                    <p id="no-inventory-msg" class="text-center text-gray-500 py-8 hidden">No inventory items found.</p>
+                </div>
+                 <div id="inventory-pagination-controls" class="flex justify-between items-center mt-4">
+                    <button id="inventory-prev-page-btn" class="btn btn-outline">Previous</button><span id="inventory-page-info" class="text-sm text-gray-600"></span><button id="inventory-next-page-btn" class="btn btn-outline">Next</button>
+                </div>
+            </section>
+
             <!-- Orders Section -->
-            <section id="orders-content">
+            <section id="orders-content" class="hidden">
                 <div class="flex flex-col md:flex-row justify-between md:items-center mb-4 gap-4">
                     <h2 class="font-playfair text-2xl font-bold text-gray-800">Customer Orders</h2>
                     <div class="flex items-center gap-2"><button id="add-order-btn" class="btn btn-maroon">Add New Order</button></div>
@@ -175,32 +206,51 @@
                     <button id="order-prev-page-btn" class="btn btn-outline">Previous</button><span id="order-page-info" class="text-xs text-gray-600"></span><button id="order-next-page-btn" class="btn btn-outline">Next</button>
                 </div>
             </section>
-            
-            <!-- Inventory Section -->
-            <section id="inventory-content" class="hidden">
-                <div class="flex flex-col md:flex-row justify-between md:items-center mb-4 gap-4">
-                    <h2 class="font-playfair text-2xl font-bold text-gray-800">Inventory</h2>
-                    <div class="flex items-center gap-2">
-                         <form id="inventory-search-form" class="flex-grow flex gap-2">
-                            <input type="text" id="inventory-search-input" placeholder="Search by Item ID or Name..." class="w-full md:w-64 form-input">
-                            <button type="submit" class="btn btn-maroon">Search</button><button type="button" id="inventory-clear-search-btn" class="btn btn-outline">Clear</button>
-                        </form>
-                        <button id="add-inventory-item-btn" class="btn btn-maroon">Add Item</button>
+
+            <!-- Analytics Section -->
+            <section id="analytics-content" class="hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="font-playfair text-2xl font-bold text-gray-800">Business Analytics</h2>
+                    <button id="refresh-analytics-btn" class="btn btn-outline">Refresh Data</button>
+                </div>
+
+                <!-- KPI Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                    <div class="bg-white p-4 rounded-lg shadow-md">
+                        <h3 class="text-sm font-medium text-gray-500">Gross Revenue</h3>
+                        <p id="analytics-total-revenue" class="text-2xl font-semibold text-gray-900 mt-1">₹0.00</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow-md">
+                        <h3 class="text-sm font-medium text-gray-500">Gross Profit</h3>
+                        <p id="analytics-gross-profit" class="text-2xl font-semibold text-green-600 mt-1">₹0.00</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow-md">
+                        <h3 class="text-sm font-medium text-gray-500">Total Pending Amount</h3>
+                        <p id="analytics-total-pending" class="text-2xl font-semibold text-red-600 mt-1">₹0.00</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow-md">
+                        <h3 class="text-sm font-medium text-gray-500">Total Inventory Value</h3>
+                        <p id="analytics-inventory-value" class="text-2xl font-semibold text-gray-900 mt-1">₹0.00</p>
                     </div>
                 </div>
-                <div class="bg-white rounded-lg shadow-md overflow-x-auto">
-                    <table class="w-full text-left text-sm">
-                        <thead class="bg-gray-50 border-b">
-                            <tr>
-                                <th class="table-cell font-semibold">Item Name</th><th class="table-cell font-semibold">Category</th><th class="table-cell font-semibold">Stock</th><th class="table-cell font-semibold">Item Value</th><th class="table-cell font-semibold">Pending to Supplier</th><th class="table-cell font-semibold">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="inventory-table-body"></tbody>
-                    </table>
-                    <p id="no-inventory-msg" class="text-center text-gray-500 py-8 hidden">No inventory items found.</p>
-                </div>
-                 <div id="inventory-pagination-controls" class="flex justify-between items-center mt-4">
-                    <button id="inventory-prev-page-btn" class="btn btn-outline">Previous</button><span id="inventory-page-info" class="text-sm text-gray-600"></span><button id="inventory-next-page-btn" class="btn btn-outline">Next</button>
+
+                <!-- Detailed Analytics -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="bg-white p-4 rounded-lg shadow-md">
+                        <h3 class="text-lg font-bold mb-4 text-gray-800">Order Summary</h3>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between"><span class="text-gray-600">Total Orders:</span><span id="analytics-total-orders" class="font-semibold">0</span></div>
+                            <div class="flex justify-between"><span class="text-gray-600">Total Amount Paid:</span><span id="analytics-total-paid" class="font-semibold">₹0.00</span></div>
+                            <div class="flex justify-between"><span class="text-gray-600">Average Order Value:</span><span id="analytics-avg-order-value" class="font-semibold">₹0.00</span></div>
+                            <div class="flex justify-between"><span class="text-gray-600">Profit Margin:</span><span id="analytics-profit-margin" class="font-semibold text-green-600">0.00%</span></div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow-md">
+                        <h3 class="text-lg font-bold mb-4 text-gray-800">Top 5 Most Valuable Items (Stock)</h3>
+                        <ul id="analytics-top-items" class="space-y-2 text-sm">
+                            <li class="text-gray-500">No data available.</li>
+                        </ul>
+                    </div>
                 </div>
             </section>
 
@@ -450,6 +500,8 @@
                 purchasePriceDisplay: document.getElementById('purchase-price-display'),
                 paidToSupplierInput: document.getElementById('paid-to-supplier'),
                 pendingToSupplierDisplay: document.getElementById('pending-to-supplier-display'),
+                analyticsTab: document.getElementById('analytics-tab'), // ADD THIS
+                analyticsContent: document.getElementById('analytics-content'), // ADD THIS
                 ratesForm: document.getElementById('rates-form'),
             };
 
@@ -464,11 +516,15 @@
             // --- TABS & MODALS ---
             allElements.ordersTab.addEventListener('click', () => switchTab('orders'));
             allElements.inventoryTab.addEventListener('click', () => switchTab('inventory'));
+            allElements.analyticsTab.addEventListener('click', () => {
+                switchTab('analytics');
+                calculateAnalytics(); // Calculate when tab is clicked
+            });
             allElements.catalogTab.addEventListener('click', () => switchTab('catalog'));
             allElements.categoriesTab.addEventListener('click', () => switchTab('categories'));
             allElements.ratesTab.addEventListener('click', () => switchTab('rates'));
             function switchTab(activeTab) {
-                ['orders', 'inventory', 'catalog', 'categories', 'rates'].forEach(tab => {
+                ['inventory', 'orders', 'analytics', 'catalog', 'categories', 'rates'].forEach(tab => {
                     const isActive = tab === activeTab;
                     allElements[`${tab}Tab`].className = `whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm ${isActive ? 'tab-btn-active' : 'tab-btn-inactive'}`;
                     allElements[`${tab}Content`].classList.toggle('hidden', !isActive);
@@ -939,6 +995,26 @@
                     allElements.inventoryTableBody.innerHTML += `<tr class="border-b"><td class="table-cell">${item.item_name}</td><td class="table-cell">${item.category}</td><td class="table-cell">${item.stock_qty}</td><td class="table-cell">₹${singleItemValue.toFixed(2)}</td><td class="table-cell text-red-600 font-semibold">₹${pendingToSupplier.toFixed(2)}</td><td class="table-cell"><div class="flex gap-2"><button class="btn btn-outline text-xs" onclick="editInventoryItem(${item.id})">Edit</button><button class="btn btn-delete text-xs" onclick="deleteInventoryItem(${item.id})">Delete</button></div></td></tr>`;
                 });
             };
+
+            const generateItemId = () => {
+                if (currentEditingInventoryId) return;
+
+                const categorySelect = document.getElementById('item-category');
+                const materialSelect = document.getElementById('item-material');
+                const itemIdInput = document.getElementById('item-id');
+                const itemNameInput = document.getElementById('item-name');
+
+                const categoryCode = (categorySelect.value.substring(0, 3) || 'XXX').toUpperCase();
+                const materialCode = (materialSelect.value.substring(0, 3) || 'XXX').toUpperCase();
+
+                const uniqueNumber = `${Date.now().toString().slice(-4)}${Math.floor(Math.random() * 90 + 10)}`;
+
+                const newId = `${categoryCode}${materialCode}${uniqueNumber}`;
+                itemIdInput.value = newId;
+
+                itemNameInput.value = newId + ' ';
+            };
+
             const calculateInventoryPurchasePrice = () => {
                 const weight = parseFloat(document.getElementById('item-weight').value) || 0;
                 const price = parseFloat(document.getElementById('item-price').value) || 0;
@@ -964,7 +1040,8 @@
                 currentEditingInventoryId = null;
                 allElements.inventoryModalTitle.textContent = 'Add New Item';
                 allElements.submitInventoryBtn.textContent = 'Submit Item';
-                document.getElementById('item-id').value = `GJ-${Date.now()}`;
+                //document.getElementById('item-id').value = `GJ-${Date.now()}`;
+                generateItemId(); // This will generate the new readable ID.
                 calculateInventoryPurchasePrice();
             };
             window.editInventoryItem = async (itemId) => {
@@ -1087,6 +1164,80 @@
                 document.getElementById('gold-rate').value = currentMetalRates['Gold'] || 0;
                 document.getElementById('silver-rate').value = currentMetalRates['Silver'] || 0;
             };
+
+            //Analytics method
+            const calculateAnalytics = async () => {
+                // 1. Fetch ALL orders and inventory data, not just one page
+                const { data: allOrders, error: ordersError } = await supabaseClient.from('orders').select('*, order_items(*)');
+                const { data: allInventory, error: inventoryError } = await supabaseClient.from('inventory').select('*');
+
+                if (ordersError || inventoryError) {
+                    alert('Could not fetch data to calculate analytics.');
+                    return;
+                }
+
+                // 2. Calculate Inventory Metrics
+                let totalInventoryValue = 0;
+                const inventoryCostMap = new Map();
+
+                allInventory.forEach(item => {
+                    const purityMultiplier = getPurityMultiplier(item.purity);
+                    const costPrice = (item.weight_grams * item.unit_price * purityMultiplier) + item.making_charges;
+                    totalInventoryValue += costPrice;
+                    inventoryCostMap.set(item.id, costPrice);
+                });
+
+                // 3. Calculate Order Metrics and Profit
+                let totalRevenue = 0;
+                let totalPaid = 0;
+                let totalPending = 0;
+                let totalCOGS = 0; // Cost of Goods Sold
+
+                allOrders.forEach(order => {
+                    totalRevenue += order.total_amount;
+                    totalPaid += order.paid_amount;
+                    totalPending += order.pending_amount;
+
+                    order.order_items.forEach(item => {
+                        if (inventoryCostMap.has(item.inventory_id)) {
+                            totalCOGS += inventoryCostMap.get(item.inventory_id);
+                        }
+                    });
+                });
+
+                const grossProfit = totalRevenue - totalCOGS;
+                const profitMargin = totalRevenue > 0 ? (grossProfit / totalRevenue) * 100 : 0;
+                const averageOrderValue = allOrders.length > 0 ? totalRevenue / allOrders.length : 0;
+
+                // 4. Update the KPI Cards
+                document.getElementById('analytics-total-revenue').textContent = `₹${totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
+                document.getElementById('analytics-gross-profit').textContent = `₹${grossProfit.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
+                document.getElementById('analytics-total-pending').textContent = `₹${totalPending.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
+                document.getElementById('analytics-inventory-value').textContent = `₹${totalInventoryValue.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
+
+                // 5. Update the Order Summary
+                document.getElementById('analytics-total-orders').textContent = allOrders.length;
+                document.getElementById('analytics-total-paid').textContent = `₹${totalPaid.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
+                document.getElementById('analytics-avg-order-value').textContent = `₹${averageOrderValue.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
+                document.getElementById('analytics-profit-margin').textContent = `${profitMargin.toFixed(2)}%`;
+
+                // 6. Update Top 5 Most Valuable Items
+                const topItemsList = document.getElementById('analytics-top-items');
+                topItemsList.innerHTML = '';
+                allInventory
+                    .map(item => ({ name: item.item_name, value: inventoryCostMap.get(item.id)}))
+                    .sort((a, b) => b.value - a.value)
+                    .slice(0, 5)
+                    .forEach(item => {
+                        topItemsList.innerHTML += `<li class="flex justify-between border-b pb-1"><span class="text-gray-700">${item.name}</span><span class="font-semibold">₹${item.value.toLocaleString('en-IN')}</span></li>`;
+                    });
+            };
+
+            // Add this new listener for the refresh button
+            document.getElementById('refresh-analytics-btn').addEventListener('click', calculateAnalytics);
+
+            // Analytics method ends here
+
             allElements.ratesForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const goldRate = parseFloat(document.getElementById('gold-rate').value);
@@ -1122,6 +1273,10 @@
             allElements.uploadForm.addEventListener('submit', async (e) => { e.preventDefault(); const title = document.getElementById('image-title').value; const category = document.getElementById('image-category').value; const file = document.getElementById('image-file').files[0]; if (!file || !category) { allElements.uploadStatus.textContent = 'Please select a file and category.'; return; } allElements.uploadBtn.disabled = true; allElements.uploadBtn.textContent = 'Uploading...'; const fileName = `${category}_${title.replace(/\s+/g, '-')}_${Date.now()}.${file.name.split('.').pop()}`; const { error } = await supabaseClient.storage.from(BUCKET_NAME).upload(fileName, file); if (error) { allElements.uploadStatus.textContent = 'Upload failed.'; } else { allElements.uploadStatus.textContent = 'Upload successful!'; allElements.uploadForm.reset(); fetchCatalogImages(); } allElements.uploadBtn.disabled = false; allElements.uploadBtn.textContent = 'Upload Image'; setTimeout(() => allElements.uploadStatus.textContent = '', 4000); });
             window.deleteImage = async (imageName) => { if (!confirm(`Are you sure you want to delete ${imageName}?`)) return; const { error } = await supabaseClient.storage.from(BUCKET_NAME).remove([imageName]); if (error) { alert('Failed to delete image.'); } else { fetchCatalogImages(); } };
             allElements.refreshImagesBtn.addEventListener('click', fetchCatalogImages);
+
+            
+            document.getElementById('item-category').addEventListener('change', generateItemId);
+            document.getElementById('item-material').addEventListener('change', generateItemId);
 
             checkSession();
         });
