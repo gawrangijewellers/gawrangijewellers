@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jewellery Order Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+        
+        // --- ⚠️ IMPORTANT: ADD YOUR SUPABASE DETAILS HERE ---
+        const SUPABASE_URL = 'https://lyuaqxdzilptauihsfyf.supabase.co'; 
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5dWFxeGR6aWxwdGF1aWhzZnlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU1ODQ2OTUsImV4cCI6MjA3MTE2MDY5NX0.Sf5skwobAoV26pHks6EeS2__aDVM3o5mT7Ensp6HIxQ';
+        // ----------------------------------------------------
+
+        if (SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_ANON_KEY === 'YOUR_SUPABASE_ANON_KEY') {
+            document.body.innerHTML = `<div class="h-screen bg-red-50 flex items-center justify-center"><div class="text-center p-8 bg-white shadow-lg rounded-lg"><h1 class="text-2xl font-bold text-red-700 mb-4">Configuration Needed</h1><p class="text-gray-700">Please open the index.html file and add your Supabase URL and Anon Key to continue.</p></div></div>`;
+        }
+
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // --- DOM ELEMENT REFERENCES ---
+        const app = {
+            pages: {
+                login: document.getElementById('login-page'),
+                list: document.getElementById('list-page'),
+                form: document.getElementById('form-page'),
+            },
+            loginPage: {
+                form: document.getElementById('login-form'),
+                loginBtn: document.getElementById('login-btn'),
+                errorMsg: document.getElementById('login-error'),
+            },
+            listPage: {
+                tbody: document.getElementById('orders-tbody'),
+                loading: document.getElementById('list-loading'),
+                newOrderBtn: document.getElementById('new-order-btn'),
+                signOutBtn: document.getElementById('sign-out-btn'),
+            },
+            formPage: {
+                form: document.getElementById('order-form'),
+                backBtn: document.getElementById('form-back-btn'),
+                title: document.getElementById('form-title'),
+                buyItemsBody: document.getElementById('buy-items-body'),
+                returnItemsBody: document.getElementById('return-items-body'),
+                addBuyBtn: document.getElementById('add-buy-item-btn'),
+                addReturnBtn: document.getElementById('add-return-item-btn'),
+                saveBtn: document.getElementById('save-order-btn'),
+                cancelBtn: document.getElementById('cancel-form-btn'),
+                summary: {
+                    totalBuy: document.getElementById('total-buy'),
+                    totalReturn: document.getElementById('total-return'),
+                    netTotal: document.getElementById('net-total'),
+                    finalAmount: document.getElementById('final-amount'),
+                    pendingAmount: document.getElementById('pending-amount'),
+                }
+            },
+            modal: {
+                container: document.getElementById('view-modal'),
+                content: document.getElementById('modal-content'),
+                closeBtn: document.getElementById('modal-close-btn'),
+            }
+        };
+        
+        // --- UTILITY FUNCTIONS ---
+        const formatCurrency = (amount) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount || 0);
+        const formatDate = (dateString) => new Date(dateString).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+
+        // --- PAGE/VIEW MANAGEMENT ---
+        function showPage(pageName) {
+            Object.values(app.pages).forEach(page => page.classList.add('hidden'));
+            if (app.pages[pageName]) {
+                app.pages[pageName].classList.remove('hidden');
+            }
+        }
+        
+        // --- ORDER LISTING LOGIC ---
+        async function fetchAndRenderOrders() {
+            app.listPage.loading.classList.remove('hidden');
+            app.listPage.tbody.innerHTML = '';
+            
+            try {
+                const { data: orders, error } = await supabase
+                    .from('gawrangi_orders')
+                    .select('*, customers:gawrangi_customers(name, phone)')
+                    .is('deleted_at', null)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+                
+                if (orders.length === 0) {
+                     app.listPage.tbody.innerHTML = `<tr><td colspan="7" class="text-center p-6 text-gray-500">No orders found. Create one!</td></tr>`;
+                } else {
+                    orders.forEach(order => {
+                        const tr = document.createElement('tr');
+                        tr.className = 'hover:bg-gray-50';
+                        tr.innerHTML = `
+                            <td class="px-5 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${order.physical_bill_number || 'N/A'}</td>
+                            <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-600">${formatDate(order.order_date)}</td>
+                            <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-800">${order.customers.name}<br><span class="text-xs text-gray-500">${order.customers.phone}</span></td>
+                            <td class="px-5 py-4 whitespace-nowrap text-sm font-semibold text-gray-800">${formatCurrency(order.final_total)}</td>
+                            <td class="px-5 py-4 whitespace-nowrap text-sm font-semibold ${order.pending_amount > 0 ? 'text-red-600' : 'text-green-600'}">${formatCurrency(order.pending_amount)}</td>
+                            <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-600"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${order.status === 'Completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">${order.status}</span></td>
+                            <td class="px-5 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                                <button data-action="view" data-id="${order.id}" class="p-2 text-indigo-600 hover:text-indigo-900 rounded-full hover:bg-indigo-100" title="View Details"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg></button>
+                                <button data-action="share" data-id="${order.id}" class="p-2 text-green-600 hover:text-green-900 rounded-full hover:bg-green-100" title="Share on WhatsApp"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.894 11.892-1.99 0-3.903-.52-5.687-1.475L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.886-.001 2.267.655 4.398 1.908 6.161l.21.314-1.238 4.516 4.625-1.225.308.214z"></path></svg></button>
+                                <button data-action="delete" data-id="${order.id}" class="p-2 text-red-600 hover:text-red-900 rounded-full hover:bg-red-100" title="Delete Order"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                            </td>
+                        `;
+                        app.listPage.tbody.appendChild(tr);
+                    });
+                }
+
+            } catch (error) {
+                console.error('Error fetching orders:', error);
+                app.listPage.tbody.innerHTML = `<tr><td colspan="7" class="text-center p-6 text-red-500">Failed to load orders. Check console for details.</td></tr>`;
+            } finally {
+                app.listPage.loading.classList.add('hidden');
+            }
+        }
+        
+        async function handleListActions(e) {
+            const button = e.target.closest('button');
+            if (!button) return;
+            
+            const action = button.dataset.action;
+            const id = button.dataset.id;
+
+            if (action === 'delete') {
+                if (confirm('Are you sure you want to delete this order?')) {
+                    const { error } = await supabase.from('gawrangi_orders').update({ deleted_at: new Date() }).eq('id', id);
+                    if (error) {
+                        alert('Failed to delete order.');
+                        console.error(error);
+                    } else {
+                        fetchAndRenderOrders();
+                    }
+                }
+            } else if (action === 'view') {
+                openViewModal(id);
+            } else if (action === 'share') {
+                const { data: order, error } = await supabase
+                    .from('gawrangi_orders')
+                    .select('*, customers:gawrangi_customers(name, phone)')
+                    .eq('id', id)
+                    .single();
+
+                if (error) {
+                    alert('Could not fetch order details to share.');
+                    return;
+                }
+                
+                const message = `
+*Invoice Summary*
+-------------------------
+*Bill No:* ${order.physical_bill_number || 'N/A'}
+*Date:* ${formatDate(order.order_date)}
+*Customer:* ${order.customers.name} (${order.customers.phone})
+-------------------------
+*Total Buy:* ${formatCurrency(order.total_buy)}
+*Total Return:* ${formatCurrency(order.total_return)}
+*Discount:* - ${formatCurrency(order.discount)}
+*Additional Charge:* + ${formatCurrency(order.additional_charge)}
+-------------------------
+*FINAL AMOUNT:* *${formatCurrency(order.final_total)}*
+*Amount Paid:* ${formatCurrency(order.paid_amount)}
+*PENDING AMOUNT:* *${formatCurrency(order.pending_amount)}*
+-------------------------
+Thank you for your business!
+                `;
+                const encodedMessage = encodeURIComponent(message.trim());
+                window.open(`https://api.whatsapp.com/send?text=${encodedMessage}`, '_blank');
+            }
+        }
+
+        // --- ORDER FORM LOGIC ---
+        function createItemRow(type) {
+            const rowId = `row-${crypto.randomUUID()}`;
+            const tr = document.createElement('tr');
+            tr.id = rowId;
+            tr.dataset.rowId = rowId;
+
+            if (type === 'buy') {
+                tr.innerHTML = `
+                    <td><input type="text" name="itemName" class="w-full p-2 border-transparent rounded focus:ring-1 focus:ring-indigo-500" placeholder="e.g., Ring"></td>
+                    <td><select name="metalType" class="w-full p-2 border-transparent rounded bg-white"><option selected>Gold</option><option>Silver</option></select></td>
+                    <td><input type="number" name="weight" step="0.001" class="w-24 p-2 border-transparent rounded" placeholder="0"></td>
+                    <td class="purity-cell" data-purity-value="0.916">
+                        <select name="purityKarat" class="w-full p-2 border-transparent rounded bg-white">
+                            <option value="0.999" selected>24K (99.9%)</option>
+                            <option value="0.916">22K (91.6%)</option>
+                            <option value="0.833">20K (83.3)</option>
+                            <option value="0.750">18K (75.0%)</option>
+                            <option value="0.585">14K (58.5%)</option>
+                        </select>
+                        <input type="number" name="purityPercent" step="0.1" value="92.5" class="w-full p-2 border-transparent rounded hidden" placeholder="e.g., 92.5">
+                    </td>
+                    <td><input type="number" name="rate" step="0.01" class="w-24 p-2 border-transparent rounded" placeholder="0"></td>
+                    <td><input type="number" name="makingCharge" step="0.01" value="10" class="w-24 p-2 border-transparent rounded"></td>
+                    <td><input type="number" name="tax" value="3" class="w-24 p-2 border-transparent rounded bg-gray-100" readonly></td>
+                    <td class="text-center"><span class="text-xs font-mono applied-rate text-gray-600 block"></span></td>
+                    <td><button type="button" class="p-2 text-red-600 hover:text-red-800 remove-row-btn"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button></td>
+                `;
+                app.formPage.buyItemsBody.appendChild(tr);
+            } else {
+                tr.innerHTML = `
+                    <td><input type="text" name="itemName" class="w-full p-2 border-transparent rounded focus:ring-1 focus:ring-indigo-500" placeholder="e.g., Old Chain"></td>
+                    <td><select name="metalType" class="w-full p-2 border-transparent rounded bg-white"><option>Gold</option><option>Silver</option></select></td>
+                    <td><input type="number" name="weight" step="0.001" class="w-24 p-2 border-transparent rounded" placeholder="0"></td>
+                    <td>
+                        <div class="relative">
+                            <input type="number" name="purity" step="0.1" value="91.6" class="w-28 p-2 border-transparent rounded" placeholder="e.g., 91.6">
+                            <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-sm text-gray-500">%</span>
+                        </div>
+                    </td>
+                    <td><input type="number" name="rate" step="0.01" class="w-24 p-2 border-transparent rounded" placeholder="0"></td>
+                    <td><button type="button" class="p-2 text-red-600 hover:text-red-800 remove-row-btn"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button></td>
+                `;
+                app.formPage.returnItemsBody.appendChild(tr);
+            }
+        }
+        
+        function handleRowActions(e) {
+            const removeBtn = e.target.closest('.remove-row-btn');
+            if (removeBtn) {
+                removeBtn.closest('tr').remove();
+                calculateTotals();
+            }
+            
+            const metalSelect = e.target.closest('select[name="metalType"]');
+            if(metalSelect && e.target.closest('tbody').id === 'buy-items-body'){
+                const row = metalSelect.closest('tr');
+                const purityCell = row.querySelector('.purity-cell');
+                const karatSelect = purityCell.querySelector('select[name="purityKarat"]');
+                const percentInput = purityCell.querySelector('input[name="purityPercent"]');
+                const makingChargeInput = row.querySelector('input[name="makingCharge"]');
+
+                if (metalSelect.value === 'Gold') {
+                    karatSelect.classList.remove('hidden');
+                    percentInput.classList.add('hidden');
+                    makingChargeInput.value = 10;
+                } else { // Silver
+                    karatSelect.classList.add('hidden');
+                    percentInput.classList.remove('hidden');
+                    makingChargeInput.value = 15;
+                }
+                calculateTotals(); // Explicitly recalculate after changing metal type
+            }
+        }
+
+        function calculateTotals() {
+            let totalBuy = 0;
+            let totalTax = 0;
+
+            app.formPage.buyItemsBody.querySelectorAll('tr').forEach(row => {
+                const weight = parseFloat(row.querySelector('[name="weight"]').value) || 0;
+                const rate = parseFloat(row.querySelector('[name="rate"]').value) || 0;
+                const makingChargePercent = parseFloat(row.querySelector('[name="makingCharge"]').value) || 0;
+                const taxPercent = parseFloat(row.querySelector('[name="tax"]').value) || 0;
+                
+                // Determine purity from the correct input
+                const purityCell = row.querySelector('.purity-cell');
+                const metalType = row.querySelector('[name="metalType"]').value;
+                let purity = 0;
+                if (metalType === 'Gold') {
+                    purity = parseFloat(purityCell.querySelector('[name="purityKarat"]').value) || 0;
+                } else { // Silver
+                    purity = (parseFloat(purityCell.querySelector('[name="purityPercent"]').value) || 0) / 100;
+                }
+                purityCell.dataset.purityValue = purity; // Store decimal value for saving
+
+                if (weight > 0 && rate > 0) {
+                    const goldValue = weight * purity * rate;
+                    const makingChargeValue = weight * (makingChargePercent / 100) * rate;
+                    const rowSubtotal = goldValue + makingChargeValue;
+                    const taxValue = rowSubtotal * (taxPercent / 100);
+                    totalTax += taxValue;
+                    totalBuy += rowSubtotal + taxValue;
+                }
+                
+                // Calculate and display Applied Rate
+                const appliedRateDisplay = row.querySelector('.applied-rate');
+                if (rate > 0 && purity > 0) {
+                    const appliedRate = (purity + (makingChargePercent / 100)) * rate;
+                    appliedRateDisplay.textContent = formatCurrency(appliedRate) + '/g';
+                } else {
+                    appliedRateDisplay.textContent = '';
+                }
+            });
+
+            let totalReturn = 0;
+            app.formPage.returnItemsBody.querySelectorAll('tr').forEach(row => {
+                const weight = parseFloat(row.querySelector('[name="weight"]').value) || 0;
+                const purity = (parseFloat(row.querySelector('[name="purity"]').value) || 0) / 100; // Convert percentage to decimal
+                const rate = parseFloat(row.querySelector('[name="rate"]').value) || 0;
+                if (weight > 0 && rate > 0) {
+                    totalReturn += weight * purity * rate;
+                }
+            });
+            
+            const form = app.formPage.form;
+            const discount = parseFloat(form.elements.discount.value) || 0;
+            const additionalCharge = parseFloat(form.elements.additionalCharge.value) || 0;
+            const paidAmount = parseFloat(form.elements.paidAmount.value) || 0;
+            
+            const netTotal = totalBuy - totalReturn;
+            const finalTotal = netTotal - discount + additionalCharge;
+            const pendingAmount = finalTotal - paidAmount;
+
+            app.formPage.summary.totalBuy.textContent = formatCurrency(totalBuy);
+            app.formPage.summary.totalReturn.textContent = formatCurrency(totalReturn);
+            app.formPage.summary.netTotal.textContent = formatCurrency(netTotal);
+            app.formPage.summary.finalAmount.textContent = formatCurrency(finalTotal);
+            app.formPage.summary.pendingAmount.textContent = formatCurrency(pendingAmount);
+            document.getElementById('summary-total-tax').textContent = formatCurrency(totalTax);
+            document.getElementById('summary-additional-charge').textContent = formatCurrency(additionalCharge);
+            
+            const pendingContainer = app.formPage.summary.pendingAmount.parentElement;
+            pendingContainer.classList.remove('bg-red-100', 'text-red-800', 'bg-green-100', 'text-green-800');
+            if (pendingAmount > 0) {
+                pendingContainer.classList.add('bg-red-100', 'text-red-800');
+            } else {
+                 pendingContainer.classList.add('bg-green-100', 'text-green-800');
+            }
+            
+            return { totalBuy, totalReturn, finalTotal, pendingAmount };
+        }
+
+        async function handleSaveOrder(e) {
+            e.preventDefault();
+            const form = app.formPage.form;
+            const formData = new FormData(form);
+
+            if (!formData.get('name') || !formData.get('phone')) {
+                alert("Customer Name and Phone are required.");
+                return;
+            }
+            
+            app.formPage.saveBtn.disabled = true;
+            app.formPage.saveBtn.textContent = 'Saving...';
+            
+            try {
+                // 1. Upsert Customer
+                const { data: customerData, error: customerError } = await supabase
+                    .from('gawrangi_customers')
+                    .upsert({ name: formData.get('name'), phone: formData.get('phone'), address: formData.get('address') }, { onConflict: 'phone' })
+                    .select()
+                    .single();
+                if (customerError) throw customerError;
+
+                // 2. Insert Order
+                const totals = calculateTotals();
+                const { data: orderData, error: orderError } = await supabase
+                    .from('gawrangi_orders')
+                    .insert({
+                        customer_id: customerData.id,
+                        physical_bill_number: formData.get('physicalBillNumber'),
+                        order_date: formData.get('orderDate'),
+                        status: formData.get('status'),
+                        discount: parseFloat(formData.get('discount')) || 0,
+                        additional_charge: parseFloat(formData.get('additionalCharge')) || 0,
+                        payment_mode: formData.get('paymentMode'),
+                        paid_amount: parseFloat(formData.get('paidAmount')) || 0,
+                        remarks: formData.get('remarks'),
+                        total_buy: totals.totalBuy,
+                        total_return: totals.totalReturn,
+                        final_total: totals.finalTotal,
+                        pending_amount: totals.pendingAmount
+                    })
+                    .select()
+                    .single();
+                if (orderError) throw orderError;
+                
+                // 3. Prepare and Insert Items
+                const allItems = [];
+                app.formPage.buyItemsBody.querySelectorAll('tr').forEach(row => {
+                    const weight = parseFloat(row.querySelector('[name="weight"]').value);
+                    if (weight > 0) {
+                        allItems.push({
+                            order_id: orderData.id, item_type: 'BUY',
+                            metal_type: row.querySelector('[name="metalType"]').value,
+                            item_name: row.querySelector('[name="itemName"]').value, weight,
+                            purity: parseFloat(row.querySelector('.purity-cell').dataset.purityValue) || 0,
+                            rate_per_gram: parseFloat(row.querySelector('[name="rate"]').value),
+                            making_charge_percentage: parseFloat(row.querySelector('[name="makingCharge"]').value),
+                            tax_percentage: parseFloat(row.querySelector('[name="tax"]').value)
+                        });
+                    }
+                });
+                app.formPage.returnItemsBody.querySelectorAll('tr').forEach(row => {
+                    const weight = parseFloat(row.querySelector('[name="weight"]').value);
+                    if (weight > 0) {
+                        allItems.push({
+                            order_id: orderData.id, item_type: 'RETURN',
+                            metal_type: row.querySelector('[name="metalType"]').value,
+                            item_name: row.querySelector('[name="itemName"]').value, weight,
+                            purity: (parseFloat(row.querySelector('[name="purity"]').value) || 0) / 100, // Convert percentage to decimal
+                            rate_per_gram: parseFloat(row.querySelector('[name="rate"]').value),
+                        });
+                    }
+                });
+                
+                if (allItems.length > 0) {
+                     const { error: itemsError } = await supabase.from('gawrangi_order_items').insert(allItems);
+                     if (itemsError) throw itemsError;
+                }
+                
+                alert('Order saved successfully!');
+                form.reset();
+                showPage('list');
+                fetchAndRenderOrders();
+
+            } catch(error) {
+                console.error("Error saving order:", error);
+                alert(`Failed to save order: ${error.message}`);
+            } finally {
+                app.formPage.saveBtn.disabled = false;
+                app.formPage.saveBtn.textContent = 'Save Order';
+            }
+        }
+        
+        // --- MODAL LOGIC ---
+        async function openViewModal(orderId) {
+            app.modal.content.innerHTML = '<p class="text-center">Loading details...</p>';
+            app.modal.container.classList.remove('hidden');
+
+            const { data: order, error } = await supabase
+                .from('gawrangi_orders')
+                .select('*, customers:gawrangi_customers(*), order_items:gawrangi_order_items(*)')
+                .eq('id', orderId)
+                .single();
+            
+            if (error) {
+                app.modal.content.innerHTML = '<p class="text-center text-red-500">Could not load order details.</p>';
+                return;
+            }
+
+            const buyItems = order.order_items.filter(i => i.item_type === 'BUY');
+            const returnItems = order.order_items.filter(i => i.item_type === 'RETURN');
+
+            app.modal.content.innerHTML = `
+                <div class="grid grid-cols-2 gap-4 text-sm mb-6 pb-4 border-b">
+                    <div><strong>Customer:</strong> ${order.customers.name}</div>
+                    <div><strong>Phone:</strong> ${order.customers.phone}</div>
+                    <div><strong>Bill No:</strong> ${order.physical_bill_number || 'N/A'}</div>
+                    <div><strong>Date:</strong> ${formatDate(order.order_date)}</div>
+                </div>
+
+                ${buyItems.length > 0 ? `
+                <h4 class="font-semibold text-green-700 mb-2">Buy Items</h4>
+                <ul class="list-disc list-inside mb-4 text-sm space-y-1">
+                    ${buyItems.map(item => `<li>${item.item_name} (${item.weight}g ${item.metal_type}) - ${formatCurrency(item.weight * item.purity * item.rate_per_gram)}</li>`).join('')}
+                </ul>` : ''}
+
+                 ${returnItems.length > 0 ? `
+                <h4 class="font-semibold text-blue-700 mb-2">Return Items</h4>
+                <ul class="list-disc list-inside mb-4 text-sm space-y-1">
+                    ${returnItems.map(item => `<li>${item.item_name} (${item.weight}g ${item.metal_type}) - ${formatCurrency(item.weight * item.purity * item.rate_per_gram)}</li>`).join('')}
+                </ul>` : ''}
+
+                <div class="mt-6 pt-4 border-t text-sm space-y-2">
+                    <div class="flex justify-between"><span>Total Buy:</span><span class="font-semibold">${formatCurrency(order.total_buy)}</span></div>
+                    <div class="flex justify-between"><span>Total Return:</span><span class="font-semibold">${formatCurrency(order.total_return)}</span></div>
+                    <div class="flex justify-between"><span>Discount:</span><span class="font-semibold text-red-600">-${formatCurrency(order.discount)}</span></div>
+                    <div class="flex justify-between"><span>Additional Charges:</span><span class="font-semibold text-green-600">+${formatCurrency(order.additional_charge)}</span></div>
+                    <hr class="my-2">
+                    <div class="flex justify-between font-bold text-base"><span>Final Total:</span><span>${formatCurrency(order.final_total)}</span></div>
+                     <div class="flex justify-between"><span>Amount Paid:</span><span class="font-semibold">${formatCurrency(order.paid_amount)}</span></div>
+                    <div class="flex justify-between font-bold text-base ${order.pending_amount > 0 ? 'text-red-600' : 'text-green-600'}"><span>Pending Amount:</span><span>${formatCurrency(order.pending_amount)}</span></div>
+                </div>
+            `;
+        }
+        
+        function closeModal() {
+            app.modal.container.classList.add('hidden');
+        }
+
+        // --- AUTHENTICATION LOGIC (NEW) ---
+        async function handleLogin(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const email = formData.get('email');
+            const password = formData.get('password');
+
+            app.loginPage.loginBtn.disabled = true;
+            app.loginPage.loginBtn.textContent = 'Signing In...';
+            app.loginPage.errorMsg.textContent = '';
+
+            try {
+                const { error } = await supabase.auth.signInWithPassword({ email, password });
+                if (error) throw error;
+                // onAuthStateChange will handle the redirect
+            } catch (error) {
+                console.error('Login failed:', error);
+                app.loginPage.errorMsg.textContent = error.message;
+            } finally {
+                app.loginPage.loginBtn.disabled = false;
+                app.loginPage.loginBtn.textContent = 'Sign In';
+            }
+        }
+
+        async function handleSignOut() {
+            await supabase.auth.signOut();
+            // onAuthStateChange will handle the redirect
+        }
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // Main Auth state listener
+                supabase.auth.onAuthStateChange((_event, session) => {
+                    if (session) {
+                        // User is logged in
+                        showPage('list');
+                        fetchAndRenderOrders();
+                        app.listPage.signOutBtn.classList.remove('hidden');
+                    } else {
+                        // User is logged out
+                        showPage('login');
+                        app.listPage.tbody.innerHTML = '';
+                        app.listPage.signOutBtn.classList.add('hidden');
+                    }
+                });
+
+                // Attach Auth event listeners
+                app.loginPage.form.addEventListener('submit', handleLogin);
+                app.listPage.signOutBtn.addEventListener('click', handleSignOut);
+                
+                // Set default date
+                document.getElementById('orderDate').value = new Date().toISOString().split('T')[0];
+
+                // List Page Listeners
+                app.listPage.newOrderBtn.addEventListener('click', () => {
+                    app.formPage.form.reset();
+                    document.getElementById('orderDate').value = new Date().toISOString().split('T')[0];
+                    app.formPage.buyItemsBody.innerHTML = '';
+                    app.formPage.returnItemsBody.innerHTML = '';
+                    createItemRow('buy');
+                    calculateTotals();
+                    showPage('form');
+                });
+                app.listPage.tbody.addEventListener('click', handleListActions);
+
+                // Form Page Listeners
+                app.formPage.backBtn.addEventListener('click', () => showPage('list'));
+                app.formPage.cancelBtn.addEventListener('click', () => showPage('list'));
+                app.formPage.addBuyBtn.addEventListener('click', () => createItemRow('buy'));
+                app.formPage.addReturnBtn.addEventListener('click', () => createItemRow('return'));
+                app.formPage.buyItemsBody.addEventListener('input', calculateTotals);
+                app.formPage.buyItemsBody.addEventListener('click', handleRowActions);
+                app.formPage.buyItemsBody.addEventListener('change', handleRowActions);
+                app.formPage.returnItemsBody.addEventListener('input', calculateTotals);
+                app.formPage.returnItemsBody.addEventListener('click', handleRowActions);
+                
+                // Specific listeners for summary fields for reliability
+                document.getElementById('discount').addEventListener('input', calculateTotals);
+                document.getElementById('additionalCharge').addEventListener('input', calculateTotals);
+                document.getElementById('paidAmount').addEventListener('input', calculateTotals);
+
+                app.formPage.form.addEventListener('submit', handleSaveOrder);
+                
+                // Modal Listeners
+                app.modal.closeBtn.addEventListener('click', closeModal);
+                app.modal.container.addEventListener('click', (e) => {
+                    if (e.target === app.modal.container) closeModal();
+                });
+
+            showPage('list');
+            fetchAndRenderOrders();
+            
+            // Set default date
+            document.getElementById('orderDate').value = new Date().toISOString().split('T')[0];
+
+            // List Page Listeners
+            app.listPage.newOrderBtn.addEventListener('click', () => {
+                app.formPage.form.reset();
+                document.getElementById('orderDate').value = new Date().toISOString().split('T')[0];
+                app.formPage.buyItemsBody.innerHTML = '';
+                app.formPage.returnItemsBody.innerHTML = '';
+                createItemRow('buy');
+                calculateTotals();
+                showPage('form');
+            });
+            app.listPage.tbody.addEventListener('click', handleListActions);
+
+            // Form Page Listeners
+            app.formPage.backBtn.addEventListener('click', () => showPage('list'));
+            app.formPage.cancelBtn.addEventListener('click', () => showPage('list'));
+            app.formPage.addBuyBtn.addEventListener('click', () => createItemRow('buy'));
+            app.formPage.addReturnBtn.addEventListener('click', () => createItemRow('return'));
+            app.formPage.buyItemsBody.addEventListener('input', calculateTotals);
+            app.formPage.buyItemsBody.addEventListener('click', handleRowActions);
+            app.formPage.buyItemsBody.addEventListener('change', handleRowActions);
+            app.formPage.returnItemsBody.addEventListener('input', calculateTotals);
+            app.formPage.returnItemsBody.addEventListener('click', handleRowActions);
+            
+            // Specific listeners for summary fields for reliability
+            document.getElementById('discount').addEventListener('input', calculateTotals);
+            document.getElementById('additionalCharge').addEventListener('input', calculateTotals);
+            document.getElementById('paidAmount').addEventListener('input', calculateTotals);
+
+            app.formPage.form.addEventListener('submit', handleSaveOrder);
+            
+            // Modal Listeners
+            app.modal.closeBtn.addEventListener('click', closeModal);
+            app.modal.container.addEventListener('click', (e) => {
+                if (e.target === app.modal.container) closeModal();
+            });
+        });
+
+    </script>
+    <style>
+        /* Add a subtle transition for page visibility */
+        .hidden { display: none; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+        <div id="login-page">
+            <div class="min-h-screen flex items-center justify-center">
+                <div class="max-w-md w-full bg-white p-8 rounded-lg shadow-md">
+                    <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">Gawrangi Jewellers</h2>
+                    <form id="login-form">
+                        <div class="mb-4">
+                            <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
+                            <input type="email" id="email" name="email" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm">
+                        </div>
+                        <div class="mb-6">
+                            <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                            <input type="password" id="password" name="password" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm">
+                        </div>
+                        <div>
+                            <button type="submit" id="login-btn" class="w-full py-2 px-4 bg-indigo-600 text-white font-semibold rounded-md shadow-sm hover:bg-indigo-700 disabled:bg-indigo-400">
+                                Sign In
+                            </button>
+                        </div>
+                        <p id="login-error" class="text-red-500 text-sm mt-4 text-center"></p>
+                    </form>
+                </div>
+            </div>
+        </div>
+    <div id="list-page">
+        <div class="p-4 md:p-8 max-w-7xl mx-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-3xl font-bold text-gray-800">Order Management</h1>
+                <button id="new-order-btn" class="px-4 py-2 bg-indigo-600 text-white font-semibold rounded-md shadow-sm hover:bg-indigo-700 transition-colors inline-flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                    New Order
+                </button>
+                <button id="sign-out-btn" class="hidden px-4 py-2 bg-red-600 text-white font-semibold rounded-md shadow-sm hover:bg-red-700 transition-colors">Sign Out</button>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bill No.</th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Final Total</th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pending</th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="relative px-5 py-3"><span class="sr-only">Actions</span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-tbody" class="bg-white divide-y divide-gray-200">
+                            </tbody>
+                    </table>
+                    <div id="list-loading" class="text-center p-6 text-gray-500">Loading orders...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="form-page" class="hidden">
+        <div class="p-4 md:p-8 bg-gray-50 min-h-screen">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex items-center mb-6">
+                    <button id="form-back-btn" class="p-2 rounded-full hover:bg-gray-200 mr-4">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    </button>
+                    <h1 id="form-title" class="text-3xl font-bold text-gray-800">Create New Order</h1>
+                </div>
+
+                <form id="order-form" class="space-y-8">
+                    <div class="p-6 bg-white rounded-lg shadow">
+                        <h2 class="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">Customer Details</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div><label for="name" class="block text-sm font-medium text-gray-700">Customer Name</label><input type="text" name="name" id="name" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"></div>
+                            <div><label for="phone" class="block text-sm font-medium text-gray-700">Phone Number</label><input type="tel" name="phone" id="phone" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"></div>
+                            <div><label for="address" class="block text-sm font-medium text-gray-700">Address</label><input type="text" name="address" id="address" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="p-6 bg-white rounded-lg shadow">
+                        <h2 class="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">Order Details</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                            <div><label for="physicalBillNumber" class="block text-sm font-medium text-gray-700">Physical Bill No.</label><input type="text" name="physicalBillNumber" id="physicalBillNumber" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"></div>
+                            <div><label for="orderDate" class="block text-sm font-medium text-gray-700">Date</label><input type="date" name="orderDate" id="orderDate" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"></div>
+                            <div><label for="status" class="block text-sm font-medium text-gray-700">Status</label><select name="status" id="status" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm bg-white"><option>Completed</option><option>Pending</option><option>Cancelled</option></select></div>
+                            <div><label for="paymentMode" class="block text-sm font-medium text-gray-700">Payment Mode</label><select name="paymentMode" id="paymentMode" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm bg-white"><option>Cash</option><option>UPI</option><option>Card</option></select></div>
+                        </div>
+                    </div>
+
+                    <div class="p-6 bg-white rounded-lg shadow">
+                        <h2 class="text-xl font-semibold mb-4 text-green-700 border-b pb-2">Buy Items (New Jewellery)</h2>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50"><tr><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Item</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Metal</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Weight(g)</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Purity</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rate(₹/g)</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Making %</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tax %</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Applied Rate</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th></tr></thead>
+                                <tbody id="buy-items-body" class="bg-white divide-y divide-gray-200"></tbody>
+                            </table>
+                        </div>
+                        <button type="button" id="add-buy-item-btn" class="mt-4 px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-md hover:bg-gray-300 inline-flex items-center gap-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>Add Buy Item</button>
+                    </div>
+
+                    <div class="p-6 bg-white rounded-lg shadow">
+                        <h2 class="text-xl font-semibold mb-4 text-blue-700 border-b pb-2">Return Items (Exchange)</h2>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50"><tr><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Item</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Metal</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Weight(g)</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Purity (%)</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rate(₹/g)</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th></tr></thead>
+                                <tbody id="return-items-body" class="bg-white divide-y divide-gray-200"></tbody>
+                            </table>
+                        </div>
+                        <button type="button" id="add-return-item-btn" class="mt-4 px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-md hover:bg-gray-300 inline-flex items-center gap-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>Add Return Item</button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div class="md:col-span-2 p-6 bg-white rounded-lg shadow">
+                            <h2 class="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">Charges & Remarks</h2>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <div><label for="discount" class="block text-sm font-medium text-gray-700">Discount (₹)</label><input type="number" name="discount" id="discount" value="0" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"></div>
+                                <div><label for="additionalCharge" class="block text-sm font-medium text-gray-700">Additional Charge (₹)</label><input type="number" name="additionalCharge" id="additionalCharge" value="0" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"></div>
+                                <div class="sm:col-span-2"><label for="remarks" class="block text-sm font-medium text-gray-700">Remarks</label><textarea name="remarks" id="remarks" rows="3" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"></textarea></div>
+                            </div>
+                        </div>
+                        <div class="p-6 bg-indigo-50 rounded-lg shadow-inner">
+                            <h2 class="text-xl font-semibold mb-4 text-indigo-800 border-b border-indigo-200 pb-2">Final Calculation</h2>
+                            <div class="space-y-3 text-gray-700">
+                                <div class="flex justify-between items-center"><span class="font-medium">Total Buy:</span> <span id="total-buy" class="font-semibold text-green-600">₹0.00</span></div>
+                                <div class="flex justify-between items-center"><span class="font-medium">Total Return:</span> <span id="total-return" class="font-semibold text-blue-600">₹0.00</span></div>
+                                <hr><div class="flex justify-between items-center text-lg"><span class="font-bold">Net Total:</span> <span id="net-total" class="font-bold">₹0.00</span></div>
+                                <div class="flex justify-between items-center"><span class="font-medium">Additional Charge:</span> <span id="summary-additional-charge" class="font-semibold text-green-600">₹0.00</span></div>
+                                <div class="flex justify-between items-center"><span class="font-medium">Total Tax (3%):</span> <span id="summary-total-tax" class="font-semibold">₹0.00</span></div>
+                                <hr>
+                                <div class="flex justify-between items-center text-xl"><span class="font-bold text-indigo-900">Final Amount:</span> <span id="final-amount" class="font-bold text-indigo-900">₹0.00</span></div>
+                                <div class="mt-4"><label for="paidAmount" class="block text-sm font-medium text-gray-700">Amount Paid (₹)</label><input type="number" name="paidAmount" id="paidAmount" value="0" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm text-lg font-bold"></div>
+                                <div class="flex justify-between items-center p-3 rounded-md text-xl"><span class="font-bold">Pending:</span> <span id="pending-amount" class="font-bold">₹0.00</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end gap-4 pt-6 border-t">
+                        <button type="button" id="cancel-form-btn" class="px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-md hover:bg-gray-300">Cancel</button>
+                        <button type="submit" id="save-order-btn" class="px-6 py-2 bg-indigo-600 text-white font-semibold rounded-md shadow-sm hover:bg-indigo-700 disabled:bg-indigo-400">Save Order</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div id="view-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
+        <div class="relative mx-auto p-6 border w-full max-w-lg shadow-lg rounded-md bg-white">
+            <div class="flex justify-between items-center pb-3 border-b">
+                 <h3 class="text-2xl font-bold text-gray-800">Order Details</h3>
+                 <button id="modal-close-btn" class="p-2 -mr-2 rounded-full hover:bg-gray-200">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                 </button>
+            </div>
+            <div id="modal-content" class="mt-4">
+                </div>
+        </div>
+    </div>
+
+</body>
+</html>
