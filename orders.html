@@ -523,6 +523,7 @@ Thank you for your business!
                     <div class="flex justify-between font-bold text-base"><span>Final Total:</span><span>${formatCurrency(order.final_total)}</span></div>
                      <div class="flex justify-between"><span>Amount Paid:</span><span class="font-semibold">${formatCurrency(order.paid_amount)}</span></div>
                     <div class="flex justify-between font-bold text-base ${order.pending_amount > 0 ? 'text-red-600' : 'text-green-600'}"><span>Pending Amount:</span><span>${formatCurrency(order.pending_amount)}</span></div>
+                    <div class="flex justify-between font-semibold text-base"><span>Note:</span><span>${order.remarks}</span></div>
                 </div>
             `;
         }
