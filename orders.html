@@ -75,49 +75,105 @@
         }
         
         // --- ORDER LISTING LOGIC ---
-        async function fetchAndRenderOrders() {
-            app.listPage.loading.classList.remove('hidden');
-            app.listPage.tbody.innerHTML = '';
-            
-            try {
-                const { data: orders, error } = await supabase
-                    .from('gawrangi_orders')
-                    .select('*, customers:gawrangi_customers(name, phone)')
-                    .is('deleted_at', null)
-                    .order('created_at', { ascending: false });
+            // --- PAGINATION STATE ---
+    let currentPage = 1;
+    const pageSize = 10;
+    let totalOrders = 0;
+    let totalPages = 1;
+    let currentSearchBill = ''; // <-- add search state
 
-                if (error) throw error;
-                
-                if (orders.length === 0) {
-                     app.listPage.tbody.innerHTML = `<tr><td colspan="7" class="text-center p-6 text-gray-500">No orders found. Create one!</td></tr>`;
-                } else {
-                    orders.forEach(order => {
-                        const tr = document.createElement('tr');
-                        tr.className = 'hover:bg-gray-50';
-                        tr.innerHTML = `
-                            <td class="px-5 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${order.physical_bill_number || 'N/A'}</td>
-                            <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-600">${formatDate(order.order_date)}</td>
-                            <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-800">${order.customers.name}<br><span class="text-xs text-gray-500">${order.customers.phone}</span></td>
-                            <td class="px-5 py-4 whitespace-nowrap text-sm font-semibold text-gray-800">${formatCurrency(order.final_total)}</td>
-                            <td class="px-5 py-4 whitespace-nowrap text-sm font-semibold ${order.pending_amount > 0 ? 'text-red-600' : 'text-green-600'}">${formatCurrency(order.pending_amount)}</td>
-                            <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-600"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${order.status === 'Completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">${order.status}</span></td>
-                            <td class="px-5 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                                <button data-action="view" data-id="${order.id}" class="p-2 text-indigo-600 hover:text-indigo-900 rounded-full hover:bg-indigo-100" title="View Details"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg></button>
-                                <button data-action="share" data-id="${order.id}" class="p-2 text-green-600 hover:text-green-900 rounded-full hover:bg-green-100" title="Share on WhatsApp"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.894 11.892-1.99 0-3.903-.52-5.687-1.475L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.886-.001 2.267.655 4.398 1.908 6.161l.21.314-1.238 4.516 4.625-1.225.308.214z"></path></svg></button>
-                                <button data-action="delete" data-id="${order.id}" class="p-2 text-red-600 hover:text-red-900 rounded-full hover:bg-red-100" title="Delete Order"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
-                            </td>
-                        `;
-                        app.listPage.tbody.appendChild(tr);
-                    });
-                }
+    // --- ORDER LISTING LOGIC WITH PAGINATION ---
+    async function fetchAndRenderOrders(page = 1, searchBill = '') {
+    app.listPage.loading.classList.remove('hidden');
+    app.listPage.tbody.innerHTML = '';
 
-            } catch (error) {
-                console.error('Error fetching orders:', error);
-                app.listPage.tbody.innerHTML = `<tr><td colspan="7" class="text-center p-6 text-red-500">Failed to load orders. Check console for details.</td></tr>`;
-            } finally {
-                app.listPage.loading.classList.add('hidden');
-            }
+    try {
+        let query = supabase
+            .from('gawrangi_orders')
+            .select('*, customers:gawrangi_customers(name, phone)', { count: 'exact' })
+            .is('deleted_at', null);
+
+        if (searchBill && searchBill.trim() !== '') {
+            query = query.ilike('physical_bill_number', `%${searchBill.trim()}%`);
         }
+
+        // Get total count
+        const { data: orders, error, count } = await query
+            .order('created_at', { ascending: false })
+            .range((page - 1) * pageSize, page * pageSize - 1);
+
+        totalOrders = count || 0;
+        totalPages = Math.max(1, Math.ceil(totalOrders / pageSize));
+        currentPage = page;
+        currentSearchBill = searchBill;
+
+        if (error) throw error;
+
+        if (!orders || orders.length === 0) {
+            app.listPage.tbody.innerHTML = `<tr><td colspan="7" class="text-center p-6 text-gray-500">No orders found. Create one!</td></tr>`;
+        } else {
+            orders.forEach(order => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50';
+                tr.innerHTML = `
+                    <td class="px-5 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${order.physical_bill_number || 'N/A'}</td>
+                    <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-600">${formatDate(order.order_date)}</td>
+                    <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-800">${order.customers.name}<br><span class="text-xs text-gray-500">${order.customers.phone}</span></td>
+                    <td class="px-5 py-4 whitespace-nowrap text-sm font-semibold text-gray-800">${formatCurrency(order.final_total)}</td>
+                    <td class="px-5 py-4 whitespace-nowrap text-sm font-semibold ${order.pending_amount > 0 ? 'text-red-600' : 'text-green-600'}">${formatCurrency(order.pending_amount)}</td>
+                    <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-600"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${order.status === 'Completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">${order.status}</span></td>
+                    <td class="px-5 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                        <button data-action="view" data-id="${order.id}" class="p-2 text-indigo-600 hover:text-indigo-900 rounded-full hover:bg-indigo-100" title="View Details"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg></button>
+                        <button data-action="share" data-id="${order.id}" class="p-2 text-green-600 hover:text-green-900 rounded-full hover:bg-green-100" title="Share on WhatsApp"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.894 11.892-1.99 0-3.903-.52-5.687-1.475L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.886-.001 2.267.655 4.398 1.908 6.161l.21.314-1.238 4.516 4.625-1.225.308.214z"></path></svg></button>
+                        <button data-action="delete" data-id="${order.id}" class="p-2 text-red-600 hover:text-red-900 rounded-full hover:bg-red-100" title="Delete Order"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                    </td>
+                `;
+                app.listPage.tbody.appendChild(tr);
+            });
+        }
+
+        renderPagination();
+
+    } catch (error) {
+        console.error('Error fetching orders:', error);
+        app.listPage.tbody.innerHTML = `<tr><td colspan="7" class="text-center p-6 text-red-500">Failed to load orders. Check console for details.</td></tr>`;
+    } finally {
+        app.listPage.loading.classList.add('hidden');
+    }
+}
+
+function renderPagination() {
+    let paginationContainer = document.getElementById('pagination-container');
+    if (!paginationContainer) {
+        paginationContainer = document.createElement('div');
+        paginationContainer.id = 'pagination-container';
+        paginationContainer.className = 'flex justify-center items-center gap-2 py-4';
+        app.listPage.tbody.parentElement.appendChild(paginationContainer);
+    }
+    paginationContainer.innerHTML = '';
+
+    // Previous Button
+    const prevBtn = document.createElement('button');
+    prevBtn.textContent = 'Previous';
+    prevBtn.className = 'px-3 py-1 rounded bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300';
+    prevBtn.disabled = currentPage === 1;
+    prevBtn.onclick = () => fetchAndRenderOrders(currentPage - 1, currentSearchBill);
+    paginationContainer.appendChild(prevBtn);
+
+    // Page Info
+    const pageInfo = document.createElement('span');
+    pageInfo.className = 'px-3 font-medium text-gray-700';
+    pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+    paginationContainer.appendChild(pageInfo);
+
+    // Next Button
+    const nextBtn = document.createElement('button');
+    nextBtn.textContent = 'Next';
+    nextBtn.className = 'px-3 py-1 rounded bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300';
+    nextBtn.disabled = currentPage === totalPages;
+    nextBtn.onclick = () => fetchAndRenderOrders(currentPage + 1, currentSearchBill);
+    paginationContainer.appendChild(nextBtn);
+}
         
         async function handleListActions(e) {
             const button = e.target.closest('button');
@@ -507,15 +563,27 @@ Thank you for your business!
         // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', () => {
 
+                // Search Bill No. Listener
+                const searchInput = document.getElementById('search-bill-input');
+                let searchTimeout;
+                searchInput.addEventListener('input', (e) => {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => {
+                        fetchAndRenderOrders(1, e.target.value);
+                    }, 300);
+                });
             // Main Auth state listener
                 supabase.auth.onAuthStateChange((_event, session) => {
-                    if (session) {
-                        // User is logged in
+                    console.log("🔥 Auth state change triggered:", _event, session?.user?.email);
+
+                    if (_event === "SIGNED_IN") {
+                        console.log("User signed in:", session.user.email);
                         showPage('list');
-                        fetchAndRenderOrders();
+                        fetchAndRenderOrders();   // ✅ now runs only once
                         app.listPage.signOutBtn.classList.remove('hidden');
-                    } else {
-                        // User is logged out
+                    } 
+                    else if (_event === "SIGNED_OUT") {
+                        console.log("User signed out");
                         showPage('login');
                         app.listPage.tbody.innerHTML = '';
                         app.listPage.signOutBtn.classList.add('hidden');
@@ -564,48 +632,6 @@ Thank you for your business!
                 app.modal.container.addEventListener('click', (e) => {
                     if (e.target === app.modal.container) closeModal();
                 });
-
-            showPage('list');
-            fetchAndRenderOrders();
-            
-            // Set default date
-            document.getElementById('orderDate').value = new Date().toISOString().split('T')[0];
-
-            // List Page Listeners
-            app.listPage.newOrderBtn.addEventListener('click', () => {
-                app.formPage.form.reset();
-                document.getElementById('orderDate').value = new Date().toISOString().split('T')[0];
-                app.formPage.buyItemsBody.innerHTML = '';
-                app.formPage.returnItemsBody.innerHTML = '';
-                createItemRow('buy');
-                calculateTotals();
-                showPage('form');
-            });
-            app.listPage.tbody.addEventListener('click', handleListActions);
-
-            // Form Page Listeners
-            app.formPage.backBtn.addEventListener('click', () => showPage('list'));
-            app.formPage.cancelBtn.addEventListener('click', () => showPage('list'));
-            app.formPage.addBuyBtn.addEventListener('click', () => createItemRow('buy'));
-            app.formPage.addReturnBtn.addEventListener('click', () => createItemRow('return'));
-            app.formPage.buyItemsBody.addEventListener('input', calculateTotals);
-            app.formPage.buyItemsBody.addEventListener('click', handleRowActions);
-            app.formPage.buyItemsBody.addEventListener('change', handleRowActions);
-            app.formPage.returnItemsBody.addEventListener('input', calculateTotals);
-            app.formPage.returnItemsBody.addEventListener('click', handleRowActions);
-            
-            // Specific listeners for summary fields for reliability
-            document.getElementById('discount').addEventListener('input', calculateTotals);
-            document.getElementById('additionalCharge').addEventListener('input', calculateTotals);
-            document.getElementById('paidAmount').addEventListener('input', calculateTotals);
-
-            app.formPage.form.addEventListener('submit', handleSaveOrder);
-            
-            // Modal Listeners
-            app.modal.closeBtn.addEventListener('click', closeModal);
-            app.modal.container.addEventListener('click', (e) => {
-                if (e.target === app.modal.container) closeModal();
-            });
         });
 
     </script>
@@ -642,6 +668,8 @@ Thank you for your business!
         <div class="p-4 md:p-8 max-w-7xl mx-auto">
             <div class="flex justify-between items-center mb-6">
                 <h1 class="text-3xl font-bold text-gray-800">Order Management</h1>
+                        
+                <input type="text" id="search-bill-input" placeholder="Search Bill No." class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
                 <button id="new-order-btn" class="px-4 py-2 bg-indigo-600 text-white font-semibold rounded-md shadow-sm hover:bg-indigo-700 transition-colors inline-flex items-center gap-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                     New Order
@@ -664,8 +692,9 @@ Thank you for your business!
                             </tr>
                         </thead>
                         <tbody id="orders-tbody" class="bg-white divide-y divide-gray-200">
-                            </tbody>
+                        </tbody>
                     </table>
+                    <div id="pagination-container" class="flex justify-center items-center gap-2 py-4"></div>
                     <div id="list-loading" class="text-center p-6 text-gray-500">Loading orders...</div>
                 </div>
             </div>
