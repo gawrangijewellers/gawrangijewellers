@@ -197,7 +197,7 @@ function renderPagination() {
             } else if (action === 'share') {
                 const { data: order, error } = await supabase
                     .from('gawrangi_orders')
-                    .select('*, customers:gawrangi_customers(name, phone)')
+                    .select('*, customers:gawrangi_customers(name, phone), payments:gawrangi_payments(*)')
                     .eq('id', id)
                     .single();
 
@@ -205,24 +205,37 @@ function renderPagination() {
                     alert('Could not fetch order details to share.');
                     return;
                 }
+
+            // Format payment history
+            let paymentHistory = '';
+            if (order.payments && order.payments.length > 0) {
+                paymentHistory = '\n*Payment History*';
+                order.payments.forEach((p, idx) => {
+                    paymentHistory += `\n${idx + 1}. ${new Date(p.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} - ₹${p.amount} (${p.mode || '-'})${p.remarks ? ' - ' + p.remarks : ''}`;
+                });
+            } else {
+                paymentHistory = '\n*Payment History*\nNo payments yet.';
+            }
                 
-                const message = `
-*Invoice Summary*
--------------------------
-*Bill No:* ${order.physical_bill_number || 'N/A'}
-*Date:* ${formatDate(order.order_date)}
-*Customer:* ${order.customers.name} (${order.customers.phone})
--------------------------
-*Total Buy:* ${formatCurrency(order.total_buy)}
-*Total Return:* ${formatCurrency(order.total_return)}
-*Discount:* - ${formatCurrency(order.discount)}
-*Additional Charge:* + ${formatCurrency(order.additional_charge)}
--------------------------
-*FINAL AMOUNT:* *${formatCurrency(order.final_total)}*
-*Amount Paid:* ${formatCurrency(order.paid_amount)}
-*PENDING AMOUNT:* *${formatCurrency(order.pending_amount)}*
--------------------------
-Thank you for your business!
+            const message = `
+                *गौरांगी ज्वैलर्स Invoice Summary*
+                -------------------------
+                *Bill No:* ${order.physical_bill_number || 'N/A'}
+                *Date:* ${formatDate(order.order_date)}
+                *Customer:* ${order.customers.name} (${order.customers.phone})
+                -------------------------
+                *Total Buy:* ${formatCurrency(order.total_buy)}
+                *Total Return:* ${formatCurrency(order.total_return)}
+                *Discount:* - ${formatCurrency(order.discount)}
+                *Additional Charge:* + ${formatCurrency(order.additional_charge)}
+                -------------------------
+                *FINAL AMOUNT:* *${formatCurrency(order.final_total)}*
+                *Amount Paid:* ${formatCurrency(order.paid_amount)}
+                *PENDING AMOUNT:* *${formatCurrency(order.pending_amount)}*
+                -------------------------
+                ${paymentHistory}
+                -------------------------
+                Thank you for your business!
                 `;
                 const encodedMessage = encodeURIComponent(message.trim());
                 window.open(`https://api.whatsapp.com/send?text=${encodedMessage}`, '_blank');
@@ -482,10 +495,10 @@ Thank you for your business!
 
             const { data: order, error } = await supabase
                 .from('gawrangi_orders')
-                .select('*, customers:gawrangi_customers(*), order_items:gawrangi_order_items(*)')
+                .select('*, customers:gawrangi_customers(*), order_items:gawrangi_order_items(*), payments:gawrangi_payments(*)')
                 .eq('id', orderId)
                 .single();
-            
+
             if (error) {
                 app.modal.content.innerHTML = '<p class="text-center text-red-500">Could not load order details.</p>';
                 return;
@@ -493,6 +506,7 @@ Thank you for your business!
 
             const buyItems = order.order_items.filter(i => i.item_type === 'BUY');
             const returnItems = order.order_items.filter(i => i.item_type === 'RETURN');
+            const payments = order.payments || [];
 
             app.modal.content.innerHTML = `
                 <div class="grid grid-cols-2 gap-4 text-sm mb-6 pb-4 border-b">
@@ -508,7 +522,7 @@ Thank you for your business!
                     ${buyItems.map(item => `<li>${item.item_name} (${item.weight}g ${item.metal_type}) - ${formatCurrency(item.weight * item.purity * item.rate_per_gram)}</li>`).join('')}
                 </ul>` : ''}
 
-                 ${returnItems.length > 0 ? `
+                ${returnItems.length > 0 ? `
                 <h4 class="font-semibold text-blue-700 mb-2">Return Items</h4>
                 <ul class="list-disc list-inside mb-4 text-sm space-y-1">
                     ${returnItems.map(item => `<li>${item.item_name} (${item.weight}g ${item.metal_type}) - ${formatCurrency(item.weight * item.purity * item.rate_per_gram)}</li>`).join('')}
@@ -521,12 +535,131 @@ Thank you for your business!
                     <div class="flex justify-between"><span>Additional Charges:</span><span class="font-semibold text-green-600">+${formatCurrency(order.additional_charge)}</span></div>
                     <hr class="my-2">
                     <div class="flex justify-between font-bold text-base"><span>Final Total:</span><span>${formatCurrency(order.final_total)}</span></div>
-                     <div class="flex justify-between"><span>Amount Paid:</span><span class="font-semibold">${formatCurrency(order.paid_amount)}</span></div>
+                    <div class="flex justify-between"><span>Amount Paid:</span><span class="font-semibold">${formatCurrency(order.paid_amount)}</span></div>
                     <div class="flex justify-between font-bold text-base ${order.pending_amount > 0 ? 'text-red-600' : 'text-green-600'}"><span>Pending Amount:</span><span>${formatCurrency(order.pending_amount)}</span></div>
-                    <div class="flex justify-between font-semibold text-base"><span>Note:</span><span>${order.remarks}</span></div>
+                    <div class="flex justify-between"><span>Remarks:</span><span class="italic text-gray-700">${order.remarks ? order.remarks : '-'}</span></div>
+                </div>
+
+                <div class="mt-8">
+                    <h4 class="font-semibold text-indigo-700 mb-2">Payment History</h4>
+                    <table class="min-w-full text-sm mb-4">
+                        <thead>
+                            <tr>
+                                <th class="px-2 py-1 text-left">Date</th>
+                                <th class="px-2 py-1 text-left">Amount</th>
+                                <th class="px-2 py-1 text-left">Mode</th>
+                                <th class="px-2 py-1 text-left">Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${payments.length > 0 ? payments.map(p => `
+                                <tr>
+                                    <td class="px-2 py-1">${formatDate(p.date)}</td>
+                                    <td class="px-2 py-1">${formatCurrency(p.amount)}</td>
+                                    <td class="px-2 py-1">${p.mode || '-'}</td>
+                                    <td class="px-2 py-1">${p.remarks || '-'}</td>
+                                </tr>
+                            `).join('') : `<tr><td colspan="4" class="px-2 py-2 text-gray-400 text-center">No payments yet.</td></tr>`}
+                        </tbody>
+                    </table>
+                    ${order.pending_amount > 0 ? `
+                    <button id="receive-payment-btn" class="px-4 py-2 bg-green-600 text-white rounded font-semibold hover:bg-green-700">Receive Payment</button>
+                    ` : ''}
                 </div>
             `;
+
+            // Attach receive payment button listener
+            const receiveBtn = document.getElementById('receive-payment-btn');
+            if (receiveBtn) {
+                receiveBtn.onclick = () => showReceivePaymentForm(orderId, order.pending_amount);
+            }
+    }
+
+    // 3. Show receive payment form/modal
+function showReceivePaymentForm(orderId, pendingAmount) {
+    app.modal.content.innerHTML = `
+        <h3 class="text-xl font-bold mb-4 text-gray-800">Receive Payment</h3>
+        <form id="receive-payment-form" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Amount (₹)</label>
+                <input type="number" name="amount" step="any" min="0" max="${pendingAmount}" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm" value="${pendingAmount}">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Date</label>
+                <input type="date" name="date" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm" value="${new Date().toISOString().split('T')[0]}">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Mode</label>
+                <select name="mode" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm bg-white">
+                    <option>Cash</option>
+                    <option>UPI</option>
+                    <option>Card</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Remarks</label>
+                <input type="text" name="remarks" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm">
+            </div>
+            <div class="flex justify-end gap-2 pt-4">
+                <button type="button" id="cancel-payment-btn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">Cancel</button>
+                <button type="submit" class="px-6 py-2 bg-green-600 text-white font-semibold rounded hover:bg-green-700">Save Payment</button>
+            </div>
+        </form>
+    `;
+
+    document.getElementById('cancel-payment-btn').onclick = closeModal;
+    document.getElementById('receive-payment-form').onsubmit = async function(e) {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const amount = parseFloat(formData.get('amount'));
+        const date = formData.get('date');
+        const mode = formData.get('mode');
+        const remarks = formData.get('remarks');
+
+        // Save payment
+        const { error: paymentError } = await supabase.from('gawrangi_payments').insert({
+            order_id: orderId,
+            amount,
+            date,
+            mode,
+            remarks
+        });
+        if (paymentError) {
+            alert('Failed to save payment.');
+            return;
         }
+
+        // Update order paid_amount and pending_amount
+        // Fetch current paid_amount
+        const { data: orderData, error: orderFetchError } = await supabase
+            .from('gawrangi_orders')
+            .select('paid_amount, final_total')
+            .eq('id', orderId)
+            .single();
+        if (orderFetchError) {
+            alert('Failed to update order.');
+            return;
+        }
+        const newPaidAmount = (orderData.paid_amount || 0) + amount;
+        const newPendingAmount = Math.max(0, (orderData.final_total || 0) - newPaidAmount);
+
+        const { error: orderUpdateError } = await supabase
+            .from('gawrangi_orders')
+            .update({
+                paid_amount: newPaidAmount,
+                pending_amount: newPendingAmount,
+                status: newPendingAmount === 0 ? 'Completed' : 'Pending'
+            })
+            .eq('id', orderId);
+        if (orderUpdateError) {
+            alert('Failed to update order.');
+            return;
+        }
+
+        alert('Payment received!');
+        openViewModal(orderId); // Refresh modal
+    };
+}
         
         function closeModal() {
             app.modal.container.classList.add('hidden');
@@ -639,6 +772,44 @@ Thank you for your business!
     <style>
         /* Add a subtle transition for page visibility */
         .hidden { display: none; }
+
+        /* Responsive tweaks for mobile */
+        @media (max-width: 768px) {
+            .max-w-7xl { max-width: 100vw; }
+            .p-4, .md\:p-8 { padding: 1rem !important; }
+            .rounded-lg, .shadow, .shadow-md, .shadow-inner { border-radius: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.07); }
+            .flex { flex-direction: column !important; gap: 1rem; }
+            .grid-cols-3, .md\:grid-cols-3, .md\:grid-cols-4, .md\:col-span-2, .md\:grid-cols-3, .sm\:grid-cols-2 { grid-template-columns: 1fr !important; }
+            .mb-6 { margin-bottom: 1.5rem !important; }
+            .overflow-x-auto { overflow-x: auto; }
+            table { font-size: 0.95rem; }
+            th, td { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+            .text-3xl { font-size: 1.5rem !important; }
+            .text-xl { font-size: 1.1rem !important; }
+            .text-lg { font-size: 1rem !important; }
+            .max-w-md, .max-w-lg { max-width: 100vw !important; }
+            .w-full { width: 100% !important; }
+            .mx-auto { margin-left: 0 !important; margin-right: 0 !important; }
+        }
+        @media (max-width: 480px) {
+            .p-4, .md\:p-8 { padding: 0.5rem !important; }
+            .mb-6 { margin-bottom: 1rem !important; }
+            .rounded-lg { border-radius: 0.5rem; }
+            .text-3xl { font-size: 1.1rem !important; }
+            .text-xl { font-size: 1rem !important; }
+            .text-lg { font-size: 0.95rem !important; }
+            th, td { padding-left: 0.25rem !important; padding-right: 0.25rem !important; }
+        }
+
+        /* Responsive modal for mobile screens */
+        @media (max-width: 600px) {
+            #view-modal > div {
+                max-width: 98vw !important;
+                width: 98vw !important;
+                padding: 1rem !important;
+                border-radius: 0.75rem !important;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-100 font-sans">
@@ -667,15 +838,16 @@ Thank you for your business!
         </div>
     <div id="list-page">
         <div class="p-4 md:p-8 max-w-7xl mx-auto">
-            <div class="flex justify-between items-center mb-6">
+            <div class="flex flex-wrap justify-between items-center mb-6 gap-2">
                 <h1 class="text-3xl font-bold text-gray-800">Order Management</h1>
-                        
-                <input type="text" id="search-bill-input" placeholder="Search Bill No." class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
-                <button id="new-order-btn" class="px-4 py-2 bg-indigo-600 text-white font-semibold rounded-md shadow-sm hover:bg-indigo-700 transition-colors inline-flex items-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                    New Order
-                </button>
-                <button id="sign-out-btn" class="hidden px-4 py-2 bg-red-600 text-white font-semibold rounded-md shadow-sm hover:bg-red-700 transition-colors">Sign Out</button>
+                <div class="flex flex-wrap gap-2 w-full md:w-auto">
+                    <input type="text" id="search-bill-input" placeholder="Search Bill No." class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm w-full md:w-auto" />
+                    <button id="new-order-btn" class="px-4 py-2 bg-indigo-600 text-white font-semibold rounded-md shadow-sm hover:bg-indigo-700 transition-colors inline-flex items-center gap-2 w-full md:w-auto">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                        New Order
+                    </button>
+                    <button id="sign-out-btn" class="hidden px-4 py-2 bg-red-600 text-white font-semibold rounded-md shadow-sm hover:bg-red-700 transition-colors w-full md:w-auto">Sign Out</button>
+                </div>
             </div>
             
             <div class="bg-white rounded-lg shadow overflow-hidden">
@@ -705,7 +877,7 @@ Thank you for your business!
     <div id="form-page" class="hidden">
         <div class="p-4 md:p-8 bg-gray-50 min-h-screen">
             <div class="max-w-7xl mx-auto">
-                <div class="flex items-center mb-6">
+                <div class="flex flex-wrap items-center mb-6 gap-2">
                     <button id="form-back-btn" class="p-2 rounded-full hover:bg-gray-200 mr-4">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
                     </button>
@@ -758,8 +930,8 @@ Thank you for your business!
                         <div class="md:col-span-2 p-6 bg-white rounded-lg shadow">
                             <h2 class="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">Charges & Remarks</h2>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                <div><label for="discount" class="block text-sm font-medium text-gray-700">Discount (₹)</label><input type="number" name="discount" id="discount" value="0" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"></div>
-                                <div><label for="additionalCharge" class="block text-sm font-medium text-gray-700">Additional Charge (₹)</label><input type="number" name="additionalCharge" id="additionalCharge" value="0" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"></div>
+                                <div><label for="discount" class="block text-sm font-medium text-gray-700">Discount (₹)</label><input type="number" name="discount" id="discount" step="any" value="0" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"></div>
+                                <div><label for="additionalCharge" class="block text-sm font-medium text-gray-700" step="any">Additional Charge (₹)</label><input type="number" name="additionalCharge" id="additionalCharge" value="0" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"></div>
                                 <div class="sm:col-span-2"><label for="remarks" class="block text-sm font-medium text-gray-700">Remarks</label><textarea name="remarks" id="remarks" rows="3" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"></textarea></div>
                             </div>
                         </div>
@@ -773,7 +945,7 @@ Thank you for your business!
                                 <div class="flex justify-between items-center"><span class="font-medium">Total Tax (3%):</span> <span id="summary-total-tax" class="font-semibold">₹0.00</span></div>
                                 <hr>
                                 <div class="flex justify-between items-center text-xl"><span class="font-bold text-indigo-900">Final Amount:</span> <span id="final-amount" class="font-bold text-indigo-900">₹0.00</span></div>
-                                <div class="mt-4"><label for="paidAmount" class="block text-sm font-medium text-gray-700">Amount Paid (₹)</label><input type="number" name="paidAmount" id="paidAmount" value="0" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm text-lg font-bold"></div>
+                                <div class="mt-4"><label for="paidAmount" class="block text-sm font-medium text-gray-700">Amount Paid (₹)</label><input type="number" name="paidAmount" id="paidAmount" step="any" value="0" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm text-lg font-bold"></div>
                                 <div class="flex justify-between items-center p-3 rounded-md text-xl"><span class="font-bold">Pending:</span> <span id="pending-amount" class="font-bold">₹0.00</span></div>
                             </div>
                         </div>
@@ -788,16 +960,18 @@ Thank you for your business!
         </div>
     </div>
     
-    <div id="view-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
-        <div class="relative mx-auto p-6 border w-full max-w-lg shadow-lg rounded-md bg-white">
+    <div id="view-modal" class="pt-4 hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
+        <div class="relative mx-auto p-4 md:p-6 border w-full max-w-lg md:max-w-xl shadow-lg rounded-md bg-white"
+            style="max-height: 90vh; overflow-y: auto;">
             <div class="flex justify-between items-center pb-3 border-b">
-                 <h3 class="text-2xl font-bold text-gray-800">Order Details</h3>
-                 <button id="modal-close-btn" class="p-2 -mr-2 rounded-full hover:bg-gray-200">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                 </button>
+                <h3 class="text-2xl font-bold text-gray-800">Order Details</h3>
+                <button id="modal-close-btn" class="p-2 -mr-2 rounded-full hover:bg-gray-200">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
             </div>
-            <div id="modal-content" class="mt-4">
-                </div>
+            <div id="modal-content" class="mt-4"></div>
         </div>
     </div>
 
