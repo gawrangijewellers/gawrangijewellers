@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - गौраंगी ज्वैलर्स</title>
+    <!-- External Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <!-- Local Stylesheet -->
+    <style>
+        :root {
+            --maroon: #800020;
+            --gold: #D4AF37;
+        }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f1f5f9; 
+        }
+        .font-playfair { 
+            font-family: 'Playfair Display', serif; 
+        }
+        .bg-maroon { 
+            background-color: var(--maroon); 
+        }
+        .text-maroon { 
+            color: var(--maroon); 
+        }
+        .btn {
+            padding: 0.375rem 1rem; /* Compact button padding */
+            border-radius: 0.375rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .btn-maroon { 
+            background-color: var(--maroon); 
+            color: white; 
+        }
+        .btn-maroon:hover:not(:disabled) { 
+            background-color: #600018; 
+        }
+        .btn-outline {
+            background-color: transparent;
+            color: #374151;
+            border-color: #cbd5e1;
+        }
+        .btn-outline:hover:not(:disabled) { 
+            background-color: #e2e8f0; 
+        }
+        .btn-delete {
+            background-color: #fee2e2;
+            color: #dc2626;
+            border-color: #fecaca;
+        }
+        .btn-delete:hover { 
+            background-color: #fecaca; 
+        }
+        .tab-btn-active {
+            color: var(--maroon);
+            border-color: var(--maroon);
+        }
+        .tab-btn-inactive {
+            color: #6b7280;
+            border-color: transparent;
+        }
+        .tab-btn-inactive:hover {
+            color: #374151;
+            border-color: #d1d5db;
+        }
+        /* Modal styles */
+        .modal-overlay {
+            transition: opacity 0.3s ease;
+        }
+        .modal-content {
+            transition: transform 0.3s ease;
+        }
+        /* Compact form elements */
+        .form-input {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+        }
+        .form-label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #4b5563;
+            margin-bottom: 0.25rem;
+        }
+        /* Compact table cells */
+        .table-cell {
+            padding: 0.75rem 1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Login Section -->
+    <div id="login-section" class="fixed inset-0 bg-gray-100 flex items-center justify-center z-50">
+        <div class="w-full max-w-md bg-white p-8 rounded-xl shadow-lg">
+            <h1 class="font-playfair text-3xl text-maroon text-center mb-2">Admin Login</h1>
+            <p class="text-center text-gray-500 mb-6">गौरांगी ज्वैलर्स Dashboard</p>
+            <form id="login-form">
+                <div class="mb-4">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" id="email" required class="form-input">
+                </div>
+                <div class="mb-4">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" id="password" required class="form-input">
+                </div>
+                <button type="submit" id="login-button" class="w-full btn btn-maroon">Login</button>
+                <p id="login-error" class="text-red-500 text-sm text-center mt-4"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Dashboard (hidden by default) -->
+    <div id="dashboard-section" class="hidden">
+        <header class="bg-white shadow-md sticky top-0 z-40">
+            <div class="container mx-auto px-6 py-3 flex justify-between items-center">
+                <h1 class="font-playfair text-2xl font-bold text-maroon">Admin Dashboard</h1>
+                <button id="logout-button" class="btn btn-outline">Logout</button>
+            </div>
+        </header>
+
+        <main class="container mx-auto p-4 md:p-6">
+            <div class="border-b border-gray-200 mb-6">
+                <nav class="-mb-px flex space-x-6 overflow-x-auto" aria-label="Tabs">
+                    <button id="inventory-tab" type="button" class="tab-btn-active whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Inventory</button>
+                    <button id="orders-tab" type="button" class="tab-btn-inactive whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Orders</button>
+                    <button id="analytics-tab" type="button" class="tab-btn-inactive whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Analytics</button> 
+                    <button id="catalog-tab" type="button" class="tab-btn-inactive whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Catalog</button>
+                    <button id="categories-tab" type="button" class="tab-btn-inactive whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Categories</button>
+                    <button id="rates-tab" type="button" class="tab-btn-inactive whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Rates</button>
+                </nav>
+            </div>
+
+            
+            
+            <!-- Inventory Section -->
+            <section id="inventory-content">
+                <div class="flex flex-col md:flex-row justify-between md:items-center mb-4 gap-4">
+                    <h2 class="font-playfair text-2xl font-bold text-gray-800">Inventory</h2>
+                    <div class="flex items-center gap-2">
+                         <form id="inventory-search-form" class="flex-grow flex gap-2">
+                            <input type="text" id="inventory-search-input" placeholder="Search by Item ID or Name..." class="w-full md:w-64 form-input">
+                            <button type="submit" class="btn btn-maroon">Search</button><button type="button" id="inventory-clear-search-btn" class="btn btn-outline">Clear</button>
+                        </form>
+                        <button id="add-inventory-item-btn" class="btn btn-maroon">Add Item</button>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow-md overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-gray-50 border-b">
+                            <tr>
+                                <th class="table-cell font-semibold">Item Name</th><th class="table-cell font-semibold">Category</th><th class="table-cell font-semibold">Stock</th><th class="table-cell font-semibold">Item Value</th><th class="table-cell font-semibold">Pending to Supplier</th><th class="table-cell font-semibold">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-table-body"></tbody>
+                    </table>
+                    <p id="no-inventory-msg" class="text-center text-gray-500 py-8 hidden">No inventory items found.</p>
+                </div>
+                 <div id="inventory-pagination-controls" class="flex justify-between items-center mt-4">
+                    <button id="inventory-prev-page-btn" class="btn btn-outline">Previous</button><span id="inventory-page-info" class="text-sm text-gray-600"></span><button id="inventory-next-page-btn" class="btn btn-outline">Next</button>
+                </div>
+            </section>
+
+            <!-- Orders Section -->
+            <section id="orders-content" class="hidden">
+                <div class="flex flex-col md:flex-row justify-between md:items-center mb-4 gap-4">
+                    <h2 class="font-playfair text-2xl font-bold text-gray-800">Customer Orders</h2>
+                    <div class="flex items-center gap-2"><button id="add-order-btn" class="btn btn-maroon">Add New Order</button></div>
+                </div>
+                <div id="filters-container" class="mb-4">
+                    <form id="search-form" class="flex items-center gap-2 bg-white p-3 rounded-lg shadow-sm">
+                        <input type="text" id="search-input" placeholder="Search by name or bill number..." class="w-full md:w-64 form-input">
+                        <button type="submit" class="btn btn-maroon">Search</button>
+                        <button type="button" id="clear-search-btn" class="btn btn-outline">Clear</button>
+                    </form>
+                </div>
+                <div class="bg-white rounded-lg shadow-md overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-gray-50 border-b">
+                            <tr>
+                                <th class="table-cell font-semibold">Date</th><th class="table-cell font-semibold">Bill No.</th><th class="table-cell font-semibold">Customer Name</th><th class="table-cell font-semibold">Total</th><th class="table-cell font-semibold">Paid</th><th class="table-cell font-semibold">Pending</th><th class="table-cell font-semibold">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-table-body"></tbody>
+                    </table>
+                    <p id="no-orders-msg" class="text-center text-gray-500 py-8 hidden">No orders found.</p>
+                </div>
+                <div id="order-pagination-controls" class="flex justify-between items-center mt-4">
+                    <button id="order-prev-page-btn" class="btn btn-outline">Previous</button><span id="order-page-info" class="text-xs text-gray-600"></span><button id="order-next-page-btn" class="btn btn-outline">Next</button>
+                </div>
+            </section>
+
+            <!-- Analytics Section -->
+            <section id="analytics-content" class="hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="font-playfair text-2xl font-bold text-gray-800">Business Analytics</h2>
+                    <button id="refresh-analytics-btn" class="btn btn-outline">Refresh Data</button>
+                </div>
+
+                <!-- KPI Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                    <div class="bg-white p-4 rounded-lg shadow-md">
+                        <h3 class="text-sm font-medium text-gray-500">Gross Revenue</h3>
+                        <p id="analytics-total-revenue" class="text-2xl font-semibold text-gray-900 mt-1">₹0.00</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow-md">
+                        <h3 class="text-sm font-medium text-gray-500">Gross Profit</h3>
+                        <p id="analytics-gross-profit" class="text-2xl font-semibold text-green-600 mt-1">₹0.00</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow-md">
+                        <h3 class="text-sm font-medium text-gray-500">Total Pending Amount</h3>
+                        <p id="analytics-total-pending" class="text-2xl font-semibold text-red-600 mt-1">₹0.00</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow-md">
+                        <h3 class="text-sm font-medium text-gray-500">Total Inventory Value</h3>
+                        <p id="analytics-inventory-value" class="text-2xl font-semibold text-gray-900 mt-1">₹0.00</p>
+                    </div>
+                </div>
+
+                <!-- Detailed Analytics -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="bg-white p-4 rounded-lg shadow-md">
+                        <h3 class="text-lg font-bold mb-4 text-gray-800">Order Summary</h3>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between"><span class="text-gray-600">Total Orders:</span><span id="analytics-total-orders" class="font-semibold">0</span></div>
+                            <div class="flex justify-between"><span class="text-gray-600">Total Amount Paid:</span><span id="analytics-total-paid" class="font-semibold">₹0.00</span></div>
+                            <div class="flex justify-between"><span class="text-gray-600">Average Order Value:</span><span id="analytics-avg-order-value" class="font-semibold">₹0.00</span></div>
+                            <div class="flex justify-between"><span class="text-gray-600">Profit Margin:</span><span id="analytics-profit-margin" class="font-semibold text-green-600">0.00%</span></div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow-md">
+                        <h3 class="text-lg font-bold mb-4 text-gray-800">Top 5 Most Valuable Items (Stock)</h3>
+                        <ul id="analytics-top-items" class="space-y-2 text-sm">
+                            <li class="text-gray-500">No data available.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Catalog Section -->
+            <section id="catalog-content" class="hidden">
+                 <h2 class="font-playfair text-2xl font-bold text-gray-800 mb-6">Catalog Management</h2>
+                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white p-4 rounded-lg shadow-md">
+                        <h3 class="text-lg font-bold mb-4">Upload New Image</h3>
+                        <form id="upload-form" class="space-y-3">
+                            <div><label for="image-title" class="form-label">Image Title</label><input type="text" id="image-title" placeholder="e.g., Elegant Gold Necklace" required class="form-input"></div>
+                            <div><label for="image-category" class="form-label">Category</label><select id="image-category" required class="form-input"><option>Loading...</option></select></div>
+                            <div><label for="image-file" class="form-label">Image File</label><input type="file" id="image-file" accept="image/*" required class="w-full text-sm text-gray-500 file:mr-4 file:py-1.5 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-maroon/10 file:text-maroon hover:file:bg-maroon/20"></div>
+                            <button type="submit" id="upload-btn" class="w-full btn btn-maroon">Upload Image</button>
+                            <p id="upload-status" class="text-sm text-center mt-3"></p>
+                        </form>
+                    </div>
+                    <div>
+                         <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-bold">Existing Catalog Images</h3>
+                            <button id="refresh-images-btn" class="btn btn-outline">Refresh</button>
+                        </div>
+                        <div id="catalog-grid" class="grid grid-cols-2 md:grid-cols-3 gap-4 bg-white p-4 rounded-lg shadow-md min-h-[200px]"></div>
+                         <p id="no-images-msg" class="text-center text-gray-500 py-8 hidden">No catalog images found.</p>
+                    </div>
+                 </div>
+            </section>
+            
+            <!-- Categories Section -->
+            <section id="categories-content" class="hidden">
+                <h2 class="font-playfair text-2xl font-bold text-gray-800 mb-6">Category Management</h2>
+                <div class="max-w-md bg-white p-4 rounded-lg shadow-md">
+                    <h3 class="text-lg font-bold mb-4">Manage Categories</h3>
+                    <form id="category-form" class="flex gap-2 mb-4">
+                        <input type="text" id="category-name" placeholder="New category name" required class="form-input">
+                        <button type="submit" class="btn btn-maroon flex-shrink-0">Add</button>
+                    </form>
+                    <div id="category-list" class="space-y-2"></div>
+                </div>
+            </section>
+
+             <!-- Rates Section -->
+            <section id="rates-content" class="hidden">
+                <h2 class="font-playfair text-2xl font-bold text-gray-800 mb-6">Metal Rate Management</h2>
+                <div class="max-w-md bg-white p-4 rounded-lg shadow-md">
+                    <form id="rates-form" class="space-y-4">
+                        <div>
+                            <label for="gold-rate" class="form-label">Gold Rate (per gram)</label>
+                            <input type="number" step="0.01" id="gold-rate" required class="form-input">
+                        </div>
+                        <div>
+                            <label for="silver-rate" class="form-label">Silver Rate (per gram)</label>
+                            <input type="number" step="0.01" id="silver-rate" required class="form-input">
+                        </div>
+                        <button type="submit" id="update-rates-btn" class="btn btn-maroon">Update Rates</button>
+                    </form>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <!-- Add/Edit Order Modal -->
+    <div id="order-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+        <div id="modal-overlay" class="absolute inset-0 bg-black bg-opacity-50 modal-overlay"></div>
+        <div id="modal-content" class="modal-content bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col transform scale-95">
+            <div class="flex justify-between items-center p-4 border-b">
+                <h2 id="modal-title" class="font-playfair text-xl text-maroon">Create New Order</h2>
+                <button id="close-modal-btn" class="text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
+            </div>
+            <form id="new-order-form" class="flex-grow overflow-y-auto p-4 space-y-4">
+                <input type="hidden" id="editing-order-id"><input type="hidden" id="editing-customer-id">
+                <fieldset class="border p-3 rounded-md">
+                    <legend class="text-base font-semibold px-2">Customer & Bill</legend>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div><label for="customer-name" class="form-label">Name*</label><input type="text" id="customer-name" required class="form-input"></div>
+                        <div><label for="physical-bill-number" class="form-label">Bill Number</label><input type="text" id="physical-bill-number" class="form-input"></div>
+                        <div><label for="customer-mobile" class="form-label">Mobile</label><input type="tel" id="customer-mobile" class="form-input"></div>
+                        <div><label for="customer-address" class="form-label">Address</label><input type="text" id="customer-address" class="form-input"></div>
+                    </div>
+                </fieldset>
+                <fieldset class="border p-3 rounded-md">
+                    <legend class="text-base font-semibold px-2">Order Items</legend>
+                    <div id="order-items-container" class="space-y-3"></div>
+                    <button type="button" id="add-item-btn" class="mt-2 btn btn-outline text-xs">Add Another Item</button>
+                </fieldset>
+                <fieldset class="border p-3 rounded-md">
+                    <legend class="text-base font-semibold px-2">Payment & Remarks</legend>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div><label for="remarks" class="form-label">Remarks</label><textarea id="remarks" rows="5" class="form-input"></textarea></div>
+                        <div class="space-y-1 text-right text-sm">
+                            <div class="grid grid-cols-2 items-center"><p class="text-gray-500 text-left">Subtotal:</p><p id="subtotal-display" class="font-semibold text-gray-900">₹0.00</p></div>
+                            <div class="grid grid-cols-2 items-center"><p class="text-gray-500 text-left">Tax (3%):</p><p id="tax-display" class="font-semibold text-gray-900">₹0.00</p></div>
+                             <div class="grid grid-cols-2 items-center"><label for="additional-charge" class="font-medium text-gray-700 text-left">Additional Charge:</label><input type="number" id="additional-charge" value="0" step="0.01" class="form-input text-right font-semibold"></div>
+                            <hr class="col-span-2 my-1">
+                            <div class="grid grid-cols-2 items-center"><p class="font-bold text-left">Total:</p><p id="total-amount-display" class="text-lg font-bold text-gray-900">₹0.00</p></div>
+                             <div class="grid grid-cols-2 items-center"><label for="discount-amount" class="font-medium text-gray-700 text-left">Discount:</label><input type="number" id="discount-amount" value="0" step="0.01" class="form-input text-right font-semibold"></div>
+                            <div class="grid grid-cols-2 items-center">
+                                <label for="paid-amount" class="font-medium text-gray-700 text-left">Paid Amount*:</label>
+                                <input type="number" id="paid-amount" value="0" step="0.01" required class="form-input text-right font-semibold">
+                            </div>
+
+                            <div class="grid grid-cols-2 items-center">
+                                <label for="payment-mode" class="font-medium text-gray-700 text-left">Payment Mode:</label>
+                                <select id="payment-mode" class="form-input font-semibold">
+                                    <option>Cash</option>
+                                    <option>Online</option>
+                                </select>
+                            </div>
+                            <hr class="col-span-2 my-1">
+                            <div class="grid grid-cols-2"><p class="font-bold text-left">Pending:</p><p id="pending-amount-display" class="text-lg font-bold text-red-600">₹0.00</p></div>
+                        </div>
+                    </div>
+                </fieldset>
+            </form>
+            <div class="p-3 bg-gray-50 border-t flex justify-end"><button type="submit" form="new-order-form" id="submit-order-btn" class="btn btn-maroon">Submit Order</button></div>
+        </div>
+    </div>
+    <!-- Add/Edit Inventory Modal -->
+    <div id="inventory-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+        <div class="absolute inset-0 bg-black bg-opacity-50 modal-overlay"></div>
+        <div id="inventory-modal-content" class="modal-content bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col transform scale-95">
+            <div class="flex justify-between items-center p-4 border-b">
+                <h2 id="inventory-modal-title" class="font-playfair text-xl text-maroon">Add New Item</h2>
+                <button id="close-inventory-modal-btn" class="text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
+            </div>
+            <form id="inventory-form" class="flex-grow overflow-y-auto p-4 space-y-3">
+                <input type="hidden" id="editing-inventory-id">
+                 <fieldset class="border p-3 rounded-md">
+                    <legend class="text-base font-semibold px-2">Item Details</legend>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div><label for="item-id" class="form-label">Item ID*</label><input type="text" id="item-id" required readonly class="form-input bg-gray-100"></div>
+                        <div><label for="item-name" class="form-label">Item Name*</label><input type="text" id="item-name" required class="form-input"></div>
+                        <div><label for="item-category" class="form-label">Category</label><select id="item-category" class="form-input"></select></div>
+                        <div><label for="item-material" class="form-label">Material</label><select id="item-material" class="form-input"></select></div>
+                    </div>
+                </fieldset>
+                <fieldset class="border p-3 rounded-md">
+                    <legend class="text-base font-semibold px-2">Weight & Purity</legend>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div><label for="item-weight" class="form-label">Total Weight (g)</label><input type="number" step="0.001" id="item-weight" class="form-input"></div>
+                        <div><label for="item-purity" class="form-label">Purity</label><input type="text" id="item-purity" placeholder="e.g., 22K or 92.5%" class="form-input"></div>
+                        <div><label for="item-stock" class="form-label">Stock Qty*</label><input type="number" id="item-stock" value="1" required class="form-input"></div>
+                    </div>
+                </fieldset>
+                <fieldset class="border p-3 rounded-md">
+                    <legend class="text-base font-semibold px-2">Pricing</legend>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div><label for="item-price" class="form-label">Price Per Gram</label><input type="number" step="0.01" id="item-price" class="form-input" readonly></div>
+                        <div><label for="item-making-charges" class="form-label">Purchase Making Charges</label><input type="number" step="0.01" id="item-making-charges" value="0" class="form-input"></div>
+                        <div><label for="item-sell-making-charge-percent" class="form-label">Sell Making Charge (%)</label><input type="number" step="0.01" id="item-sell-making-charge-percent" value="0" class="form-input"></div>
+                    </div>
+                </fieldset>
+                 <fieldset class="border p-3 rounded-md">
+                    <legend class="text-base font-semibold px-2">Supplier & Purchase</legend>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                         <div><label for="purchase-date" class="form-label">Purchase Date</label><input type="date" id="purchase-date" class="form-input"></div>
+                        <div><label for="item-supplier" class="form-label">Supplier</label><select id="item-supplier" class="form-input"></select></div>
+                    </div>
+                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+                        <div><label class="form-label">Total Purchase Price</label><p id="purchase-price-display" class="font-semibold text-gray-900 mt-2">₹0.00</p></div>
+                        <div><label for="paid-to-supplier" class="form-label">Paid to Supplier</label><input type="number" id="paid-to-supplier" value="0" step="0.01" class="form-input"></div>
+                        <div><label class="form-label">Pending to Supplier</label><p id="pending-to-supplier-display" class="font-semibold text-red-600 mt-2">₹0.00</p></div>
+                    </div>
+                </fieldset>
+            </form>
+            <div class="p-3 bg-gray-50 border-t flex justify-end"><button type="submit" form="inventory-form" id="submit-inventory-btn" class="btn btn-maroon">Submit Item</button></div>
+        </div>
+    </div>
+
+    <!-- Local Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const SUPABASE_URL = 'https://lyuaqxdzilptauihsfyf.supabase.co'; 
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5dWFxeGR6aWxwdGF1aWhzZnlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU1ODQ2OTUsImV4cCI6MjA3MTE2MDY5NX0.Sf5skwobAoV26pHks6EeS2__aDVM3o5mT7Ensp6HIxQ';
+            const BUCKET_NAME = 'catalog-images';
+            const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+            const allElements = {
+                loginSection: document.getElementById('login-section'),
+                dashboardSection: document.getElementById('dashboard-section'),
+                loginForm: document.getElementById('login-form'),
+                loginButton: document.getElementById('login-button'),
+                loginError: document.getElementById('login-error'),
+                logoutButton: document.getElementById('logout-button'),
+                ordersTableBody: document.getElementById('orders-table-body'),
+                noOrdersMsg: document.getElementById('no-orders-msg'),
+                searchForm: document.getElementById('search-form'),
+                searchInput: document.getElementById('search-input'),
+                clearSearchBtn: document.getElementById('clear-search-btn'),
+                uploadForm: document.getElementById('upload-form'),
+                uploadBtn: document.getElementById('upload-btn'),
+                uploadStatus: document.getElementById('upload-status'),
+                catalogGrid: document.getElementById('catalog-grid'),
+                noImagesMsg: document.getElementById('no-images-msg'),
+                refreshImagesBtn: document.getElementById('refresh-images-btn'),
+                categoryForm: document.getElementById('category-form'),
+                categoryList: document.getElementById('category-list'),
+                imageCategorySelect: document.getElementById('image-category'),
+                ordersTab: document.getElementById('orders-tab'),
+                inventoryTab: document.getElementById('inventory-tab'),
+                catalogTab: document.getElementById('catalog-tab'),
+                categoriesTab: document.getElementById('categories-tab'),
+                ratesTab: document.getElementById('rates-tab'),
+                ordersContent: document.getElementById('orders-content'),
+                inventoryContent: document.getElementById('inventory-content'),
+                catalogContent: document.getElementById('catalog-content'),
+                categoriesContent: document.getElementById('categories-content'),
+                ratesContent: document.getElementById('rates-content'),
+                addOrderBtn: document.getElementById('add-order-btn'),
+                orderModal: document.getElementById('order-modal'),
+                closeModalBtn: document.getElementById('close-modal-btn'),
+                modalTitle: document.getElementById('modal-title'),
+                newOrderForm: document.getElementById('new-order-form'),
+                orderItemsContainer: document.getElementById('order-items-container'),
+                addItemBtn: document.getElementById('add-item-btn'),
+                paidAmountInput: document.getElementById('paid-amount'),
+                discountInput: document.getElementById('discount-amount'),
+                additionalChargeInput: document.getElementById('additional-charge'),
+                subtotalDisplay: document.getElementById('subtotal-display'),
+                taxDisplay: document.getElementById('tax-display'),
+                totalAmountDisplay: document.getElementById('total-amount-display'),
+                pendingAmountDisplay: document.getElementById('pending-amount-display'),
+                submitOrderBtn: document.getElementById('submit-order-btn'),
+                orderPaginationControls: document.getElementById('order-pagination-controls'),
+                orderPrevPageBtn: document.getElementById('order-prev-page-btn'),
+                orderNextPageBtn: document.getElementById('order-next-page-btn'),
+                orderPageInfo: document.getElementById('order-page-info'),
+                inventoryTableBody: document.getElementById('inventory-table-body'),
+                noInventoryMsg: document.getElementById('no-inventory-msg'),
+                addInventoryItemBtn: document.getElementById('add-inventory-item-btn'),
+                inventoryModal: document.getElementById('inventory-modal'),
+                closeInventoryModalBtn: document.getElementById('close-inventory-modal-btn'),
+                inventoryModalTitle: document.getElementById('inventory-modal-title'),
+                inventoryForm: document.getElementById('inventory-form'),
+                submitInventoryBtn: document.getElementById('submit-inventory-btn'),
+                inventorySearchForm: document.getElementById('inventory-search-form'),
+                inventorySearchInput: document.getElementById('inventory-search-input'),
+                inventoryClearSearchBtn: document.getElementById('inventory-clear-search-btn'),
+                inventoryPaginationControls: document.getElementById('inventory-pagination-controls'),
+                inventoryPrevPageBtn: document.getElementById('inventory-prev-page-btn'),
+                inventoryNextPageBtn: document.getElementById('inventory-next-page-btn'),
+                inventoryPageInfo: document.getElementById('inventory-page-info'),
+                inventoryItemCategory: document.getElementById('item-category'),
+                inventoryItemMaterial: document.getElementById('item-material'),
+                inventoryItemSupplier: document.getElementById('item-supplier'),
+                purchasePriceDisplay: document.getElementById('purchase-price-display'),
+                paidToSupplierInput: document.getElementById('paid-to-supplier'),
+                pendingToSupplierDisplay: document.getElementById('pending-to-supplier-display'),
+                analyticsTab: document.getElementById('analytics-tab'), // ADD THIS
+                analyticsContent: document.getElementById('analytics-content'), // ADD THIS
+                ratesForm: document.getElementById('rates-form'),
+            };
+
+            // --- STATE VARIABLES ---
+            let currentOrderPage = 1, totalOrderPages = 1;
+            let currentInventoryPage = 1, totalInventoryPages = 1;
+            const PAGE_SIZE = 10;
+            let currentEditingOrderId = null, currentEditingCustomerId = null, currentEditingInventoryId = null;
+            let allCategories = [], allInventoryItems = [];
+            let currentMetalRates = {};
+
+            // --- TABS & MODALS ---
+            allElements.ordersTab.addEventListener('click', () => switchTab('orders'));
+            allElements.inventoryTab.addEventListener('click', () => switchTab('inventory'));
+            allElements.analyticsTab.addEventListener('click', () => {
+                switchTab('analytics');
+                calculateAnalytics(); // Calculate when tab is clicked
+            });
+            allElements.catalogTab.addEventListener('click', () => switchTab('catalog'));
+            allElements.categoriesTab.addEventListener('click', () => switchTab('categories'));
+            allElements.ratesTab.addEventListener('click', () => switchTab('rates'));
+            function switchTab(activeTab) {
+                ['inventory', 'orders', 'analytics', 'catalog', 'categories', 'rates'].forEach(tab => {
+                    const isActive = tab === activeTab;
+                    allElements[`${tab}Tab`].className = `whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm ${isActive ? 'tab-btn-active' : 'tab-btn-inactive'}`;
+                    allElements[`${tab}Content`].classList.toggle('hidden', !isActive);
+                });
+            }
+            const openModal = (modal) => { modal.classList.remove('hidden'); setTimeout(() => { modal.querySelector('.modal-overlay').classList.remove('opacity-0'); modal.querySelector('.modal-content').classList.remove('scale-95'); }, 10); };
+            const closeModal = (modal) => { modal.querySelector('.modal-overlay').classList.add('opacity-0'); modal.querySelector('.modal-content').classList.add('scale-95'); setTimeout(() => modal.classList.add('hidden'), 300); };
+
+            allElements.addOrderBtn.addEventListener('click', () => { 
+                currentEditingOrderId = null;
+                currentEditingCustomerId = null;
+                openModal(allElements.orderModal); 
+                resetOrderForm(); 
+            });
+            allElements.closeModalBtn.addEventListener('click', () => closeModal(allElements.orderModal));
+            allElements.orderModal.querySelector('.modal-overlay').addEventListener('click', () => closeModal(allElements.orderModal));
+            allElements.addInventoryItemBtn.addEventListener('click', () => { openModal(allElements.inventoryModal); resetInventoryForm(); });
+            allElements.closeInventoryModalBtn.addEventListener('click', () => closeModal(allElements.inventoryModal));
+            allElements.inventoryModal.querySelector('.modal-overlay').addEventListener('click', () => closeModal(allElements.inventoryModal));
+
+            // --- FILTERS ---
+            allElements.clearSearchBtn.addEventListener('click', () => { allElements.searchInput.value = ''; fetchOrders('', 1); });
+            allElements.inventoryClearSearchBtn.addEventListener('click', () => { allElements.inventorySearchInput.value = ''; fetchInventory('', 1); });
+            
+            // --- HELPER FUNCTIONS ---
+            const getPurityMultiplier = (purityString) => {
+                if (!purityString || typeof purityString !== 'string') return 0;
+                const number = parseFloat(purityString);
+                if (isNaN(number)) return 0;
+                if (purityString.toUpperCase().includes('K')) return number / 24;
+                if (purityString.includes('%')) return number / 100;
+                return number / 100;
+            };
+
+            // --- ORDER FORM LOGIC ---
+            const calculateOrderTotals = () => {
+                let subtotal = 0;
+                allElements.orderItemsContainer.querySelectorAll('.item-row').forEach(row => {
+                    subtotal += parseFloat(row.querySelector('.item-subtotal').textContent.replace('₹', '')) || 0;
+                });
+                
+                const taxAmount = subtotal * 0.03;
+                const additionalCharge = parseFloat(allElements.additionalChargeInput.value) || 0;
+                const totalAmount = subtotal + taxAmount + additionalCharge;
+                const paidAmount = parseFloat(allElements.paidAmountInput.value) || 0;
+                const discount = parseFloat(allElements.discountInput.value) || 0;
+                const pendingAmount = totalAmount - paidAmount - discount;
+
+                allElements.subtotalDisplay.textContent = `₹${subtotal.toFixed(2)}`;
+                allElements.taxDisplay.textContent = `₹${taxAmount.toFixed(2)}`;
+                allElements.totalAmountDisplay.textContent = `₹${totalAmount.toFixed(2)}`;
+                allElements.pendingAmountDisplay.textContent = `₹${pendingAmount.toFixed(2)}`;
+            };
+            
+            const calculateOrderItemSubtotal = (row) => {
+                const makingCharge = parseFloat(row.querySelector('.item-making').value) || 0;
+                const selectedInventoryId = row.querySelector('.item-inventory').value;
+                const itemData = allInventoryItems.find(item => item.id == selectedInventoryId);
+                let pureMetalValue = 0;
+
+                if (itemData) {
+                    const weight = parseFloat(row.querySelector('.item-weight').value) || 0;
+                    const rate = parseFloat(row.querySelector('.item-rate').value) || 0;
+                    const purityMultiplier = getPurityMultiplier(itemData.purity);
+                    pureMetalValue = weight * rate * purityMultiplier;
+                }
+                
+                const itemSubtotal = pureMetalValue + makingCharge;
+                row.querySelector('.item-subtotal').textContent = `₹${itemSubtotal.toFixed(2)}`;
+                calculateOrderTotals();
+            };
+
+            const addItemRow = (item = {}) => { 
+                const itemHtml = `<div class="item-row grid grid-cols-12 gap-2 items-center border-t pt-3"><div class="col-span-12 md:col-span-3"><label class="form-label">Item*</label><select class="item-inventory form-input" required></select></div><div class="col-span-6 md:col-span-2"><label class="form-label">Weight (g)*</label><input type="number" value="${item.weight_grams || ''}" step="0.001" class="item-weight form-input" required></div><div class="col-span-6 md:col-span-2"><label class="form-label">Rate/g*</label><input type="number" value="${item.rate_per_gram || ''}" step="0.01" class="item-rate form-input" required readonly></div><div class="col-span-6 md:col-span-2"><label class="form-label">Making Charge*</label><input type="number" value="${item.making_charge || 0}" step="0.01" class="item-making form-input" required></div><div class="col-span-6 md:col-span-2 text-right"><p class="text-xs text-gray-500">Subtotal</p><p class="item-subtotal font-semibold">₹0.00</p><p class="item-calculation-details text-xs text-gray-400"></p></div><div class="col-span-12 md:col-span-1 flex justify-end"><button type="button" class="remove-item-btn text-red-500 hover:text-red-700 font-bold text-2xl mt-4">&times;</button></div></div>`; 
+                allElements.orderItemsContainer.insertAdjacentHTML('beforeend', itemHtml); 
+                populateOrderItemInventoryDropdown(allElements.orderItemsContainer.lastElementChild.querySelector('.item-inventory'), item.inventory_id);
+            };
+            
+            const resetOrderForm = () => { 
+                allElements.newOrderForm.reset(); 
+                allElements.orderItemsContainer.innerHTML = ''; 
+                addItemRow(); 
+                calculateOrderTotals(); 
+                allElements.modalTitle.textContent = 'Create New Order';
+                allElements.submitOrderBtn.textContent = 'Submit Order';
+            };
+            
+            allElements.addItemBtn.addEventListener('click', () => addItemRow());
+            allElements.orderItemsContainer.addEventListener('click', (e) => { if (e.target.classList.contains('remove-item-btn')) { e.target.closest('.item-row').remove(); calculateOrderTotals(); } });
+            
+            allElements.orderItemsContainer.addEventListener('change', (e) => {
+                if (e.target.classList.contains('item-inventory')) {
+                    const row = e.target.closest('.item-row');
+                    updateMakingChargeForRow(row);
+                }
+            });
+
+            allElements.newOrderForm.addEventListener('input', (e) => {
+                 if (e.target.classList.contains('item-weight') || e.target.classList.contains('item-rate')) {
+                    const row = e.target.closest('.item-row');
+                    if(row) updateMakingChargeForRow(row);
+                }
+                calculateOrderTotals();
+            });
+
+            const updateMakingChargeForRow = (row) => {
+                const selectedInventoryId = row.querySelector('.item-inventory').value;
+                const calculationDetails = row.querySelector('.item-calculation-details');
+                const makingInput = row.querySelector('.item-making');
+                const rateInput = row.querySelector('.item-rate');
+
+                if (!selectedInventoryId) {
+                    calculationDetails.textContent = '';
+                    makingInput.value = 0;
+                    rateInput.value = '';
+                    calculateOrderItemSubtotal(row);
+                    return;
+                }
+                const itemData = allInventoryItems.find(item => item.id == selectedInventoryId);
+                if (!itemData) {
+                    calculationDetails.textContent = '';
+                    makingInput.value = 0;
+                    rateInput.value = '';
+                    calculateOrderItemSubtotal(row);
+                    return;
+                }
+
+                const materialRate = currentMetalRates[itemData.material];
+                rateInput.value = materialRate || 0;
+                
+                const weight = parseFloat(row.querySelector('.item-weight').value) || 0;
+                const rate = materialRate || 0;
+                const purityString = itemData.purity || '';
+                const sellMakingChargePercent = itemData.sell_making_charge_percent || 0;
+
+                const purityMultiplier = getPurityMultiplier(purityString);
+                const makingChargeMultiplier = sellMakingChargePercent / 100;
+
+                const totalPrice = weight * rate * (purityMultiplier + makingChargeMultiplier);
+                const pureMetalPrice = weight * rate * purityMultiplier;
+                const calculatedMakingCharge = totalPrice - pureMetalPrice;
+                
+                makingInput.value = calculatedMakingCharge.toFixed(2);
+                calculationDetails.textContent = `(Metal: ₹${pureMetalPrice.toFixed(2)} + Making: ₹${calculatedMakingCharge.toFixed(2)})`;
+                calculateOrderItemSubtotal(row);
+            };
+            
+            allElements.newOrderForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                allElements.submitOrderBtn.disabled = true;
+                const isEditing = !!currentEditingOrderId;
+                allElements.submitOrderBtn.textContent = isEditing ? 'Updating...' : 'Submitting...';
+                
+                let customer;
+                const customerData = { name: document.getElementById('customer-name').value, mobile: document.getElementById('customer-mobile').value, address: document.getElementById('customer-address').value };
+                if (isEditing && currentEditingCustomerId) {
+                    const { data, error } = await supabaseClient.from('customers').update(customerData).eq('id', currentEditingCustomerId).select();
+                    if (error || !data || data.length === 0) { alert('Failed to update customer details.'); allElements.submitOrderBtn.disabled = false; return; }
+                    customer = data[0];
+                } else {
+                    const { data, error } = await supabaseClient.from('customers').insert(customerData).select();
+                    if (error || !data || data.length === 0) { alert('Failed to save customer details.'); allElements.submitOrderBtn.disabled = false; return; }
+                    customer = data[0];
+                }
+
+                // --- 1. PARSE ALL FINANCIAL VALUES WITH DEFAULTS ---
+                const subtotal = parseFloat(allElements.subtotalDisplay.textContent.replace('₹', ''));
+                const taxAmount = parseFloat(allElements.taxDisplay.textContent.replace('₹', ''));
+                const paidAmount = parseFloat(allElements.paidAmountInput.value) || 0;
+                const discount = parseFloat(allElements.discountInput.value) || 0;
+                const additional_charge = parseFloat(allElements.additionalChargeInput.value) || 0;
+                const remarks = document.getElementById('remarks').value;
+                const physical_bill_number = document.getElementById('physical-bill-number').value;
+                const final_total_amount = subtotal + taxAmount + additional_charge;
+
+                // --- 2. ADD PRE-SUBMISSION VALIDATION ---
+                if ((paidAmount + discount) > final_total_amount) {
+                    alert('Error: Paid amount and discount cannot be greater than the total amount.');
+                    allElements.submitOrderBtn.disabled = false;
+                    return;
+                }
+
+                // --- 3. REMOVE `pending_amount` FROM THE DATA OBJECT ---
+                const orderData = { 
+                    customer_id: customer.id, 
+                    total_amount: final_total_amount,
+                    tax_amount: taxAmount, 
+                    paid_amount: paidAmount, 
+                    discount: discount, 
+                    additional_charge: additional_charge, 
+                    remarks: remarks, 
+                    physical_bill_number: physical_bill_number,
+                    payment_mode: document.getElementById('payment-mode').value
+                    // `pending_amount` is removed because it is a generated column in your database.
+                };
+                
+                let order;
+                if (isEditing) {
+                    const { data, error } = await supabaseClient.from('orders').update(orderData).eq('id', currentEditingOrderId).select();
+                    // --- 4. ENHANCE ERROR LOGGING ---
+                    if (error) {
+                        console.error("Supabase update error:", error);
+                        alert('Failed to update order. Check the console (F12) for details.');
+                        allElements.submitOrderBtn.disabled = false;
+                        return;
+                    }
+                    order = data[0];
+                } else {
+                    const { data, error } = await supabaseClient.from('orders').insert(orderData).select();
+                    if (error) {
+                        console.error("Supabase insert error:", error);
+                        alert('Failed to save order. Check the console (F12) for details.');
+                        allElements.submitOrderBtn.disabled = false;
+                        return;
+                    }
+                    order = data[0];
+                }
+                
+                if (isEditing) {
+                    const { error: deleteError } = await supabaseClient.from('order_items').delete().eq('order_id', order.id);
+                    if (deleteError) { 
+                        console.error("Failed to delete old order items:", deleteError);
+                        alert('Failed to update order items. Check console for details.'); 
+                        allElements.submitOrderBtn.disabled = false; 
+                        return; 
+                    }
+                }
+
+                const items = Array.from(allElements.orderItemsContainer.querySelectorAll('.item-row')).map(row => {
+                    const inventoryId = row.querySelector('.item-inventory').value;
+                    const selectedInventoryItem = allInventoryItems.find(invItem => invItem.id == inventoryId);
+                    return {
+                        order_id: order.id,
+                        inventory_id: inventoryId,
+                        weight_grams: parseFloat(row.querySelector('.item-weight').value),
+                        rate_per_gram: parseFloat(row.querySelector('.item-rate').value),
+                        making_charge: parseFloat(row.querySelector('.item-making').value),
+                        metal_type: selectedInventoryItem ? selectedInventoryItem.material : 'N/A'
+                    };
+                });
+
+                const { error: itemsError } = await supabaseClient.from('order_items').insert(items);
+                if (itemsError) { 
+                    console.error("Failed to insert new order items:", itemsError);
+                    alert('Failed to save order items. Check console for details.'); 
+                } else { 
+                    alert(`Order ${isEditing ? 'updated' : 'created'} successfully!`); 
+                    if (!isEditing) {
+                        for (const item of items) {
+                            const { data } = await supabaseClient.from('inventory').select('stock_qty').eq('id', item.inventory_id);
+                            if (data && data.length > 0) {
+                                const newStock = data[0].stock_qty - 1;
+                                await supabaseClient.from('inventory').update({ stock_qty: newStock }).eq('id', item.inventory_id);
+                            }
+                        }
+                    }
+                    closeModal(allElements.orderModal); 
+                    // --- 5. IMPROVE UI REFRESH LOGIC ---
+                    fetchOrders(allElements.searchInput.value.trim(), currentOrderPage); 
+                    fetchInventory();
+                }
+                allElements.submitOrderBtn.disabled = false;
+            });
+
+            // --- AUTH, FETCHING, DELETING ---
+            const showDashboard = () => { allElements.loginSection.classList.add('hidden'); allElements.dashboardSection.classList.remove('hidden'); fetchOrders(); fetchInventory(); fetchAllInventoryItems(); fetchCatalogImages(); fetchCategories(); fetchMaterials(); fetchSuppliers(); fetchMetalRates(); };
+            const showLogin = () => { allElements.loginSection.classList.remove('hidden'); allElements.dashboardSection.classList.add('hidden'); };
+            const fetchOrders = async (searchTerm = '', page = 1) => {
+                const from = (page - 1) * PAGE_SIZE;
+                const to = page * PAGE_SIZE - 1;
+                if (!searchTerm) {
+                    const { data, error, count } = await supabaseClient.from('orders').select(`id, created_at, total_amount, paid_amount, pending_amount, physical_bill_number, payment_mode, customers!inner(name, mobile)`, { count: 'exact' }).order('created_at', { ascending: false }).range(from, to);
+                    if (error) { console.error('Error fetching orders:', error); return; }
+                    totalOrderPages = Math.ceil(count / PAGE_SIZE);
+                    currentOrderPage = page;
+                    displayOrders(data);
+                    updatePaginationControls(count, 'order');
+                } else {
+                    const { data: billData } = await supabaseClient.from('orders').select(`id, created_at, total_amount, paid_amount, pending_amount, physical_bill_number, customers!inner(name, mobile)`).ilike('physical_bill_number', `%${searchTerm}%`);
+                    const { data: nameData } = await supabaseClient.from('orders').select(`id, created_at, total_amount, paid_amount, pending_amount, physical_bill_number, customers!inner(name, mobile)`).ilike('customers.name', `%${searchTerm}%`);
+                    const combinedResults = [...(billData || []), ...(nameData || [])];
+                    const uniqueResults = Array.from(new Map(combinedResults.map(order => [order.id, order])).values()).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                    const count = uniqueResults.length;
+                    totalOrderPages = Math.ceil(count / PAGE_SIZE);
+                    currentOrderPage = page;
+                    const paginatedData = uniqueResults.slice(from, to + 1);
+                    displayOrders(paginatedData);
+                    updatePaginationControls(count, 'order');
+                }
+            };
+            const displayOrders = (orders) => {
+                allElements.ordersTableBody.innerHTML = '';
+                allElements.noOrdersMsg.classList.toggle('hidden', orders.length > 0);
+                orders.forEach(order => {
+                    const date = new Date(order.created_at).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' });
+                    const customerName = order.customers ? order.customers.name : 'N/A';
+                    allElements.ordersTableBody.innerHTML += `<tr class="border-b"><td class="table-cell">${date}</td><td class="table-cell">${order.physical_bill_number || ''}</td><td class="table-cell">${customerName}</td><td class="table-cell">₹${Number(order.total_amount).toFixed(2)}</td><td class="table-cell">₹${Number(order.paid_amount).toFixed(2)}</td><td class="table-cell text-red-600 font-semibold">₹${Number(order.pending_amount).toFixed(2)}</td><td class="table-cell"><div class="flex gap-2"><button class="btn btn-outline text-xs" onclick="generateInvoice(${order.id})">PDF</button><button class="btn btn-outline text-xs" onclick="shareOrder(${order.id})">Share</button><button class="btn btn-outline text-xs" onclick="editOrder(${order.id})">Edit</button><button class="btn btn-delete text-xs" onclick="deleteOrder(${order.id})">Delete</button></div></td></tr>`;
+                });
+            };
+            window.generateInvoice = async (orderId) => {
+                const { data, error } = await supabaseClient.from('orders').select(`*, customers(*), order_items(*, inventory(item_name))`).eq('id', orderId);
+                if (error || !data || data.length === 0) { alert('Could not fetch order details for PDF.'); return; }
+                const order = data[0];
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(20);
+                doc.text("Gaurangi Jewellers", 105, 20, { align: 'center' });
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'normal');
+                doc.text("Saraswati Shishu Mandir School, Near Panchhi Saree Center, Pipariya, Kawardha (491995)", 105, 27, { align: 'center' });
+                doc.text("Email: gawrangi.jewellers@gmail.com | Phone: +91 9329558080", 105, 32, { align: 'center' });
+                doc.setLineWidth(0.5);
+                doc.line(15, 38, 195, 38);
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(12);
+                doc.text("INVOICE", 15, 48);
+                doc.setFont('helvetica', 'normal');
+                doc.text(`Bill Number: ${order.physical_bill_number || 'N/A'}`, 15, 55);
+                doc.text(`Date: ${new Date(order.created_at).toLocaleDateString('en-IN')}`, 15, 60);
+                doc.setFont('helvetica', 'bold');
+                doc.text("BILL TO:", 120, 48);
+                doc.setFont('helvetica', 'normal');
+                doc.text(order.customers.name, 120, 55);
+                doc.text(order.customers.address || '', 120, 60);
+                doc.text(order.customers.mobile || '', 120, 65);
+                doc.line(15, 75, 195, 75);
+                const tableColumn = ["Item Name", "Weight (g)", "Rate/g", "Making Charge", "Subtotal"];
+                const tableRows = [];
+                let runningSubtotal = 0;
+                order.order_items.forEach(item => {
+                    const itemName = item.inventory ? item.inventory.item_name : 'Custom Item';
+                    const pureMetalValue = item.weight_grams * item.rate_per_gram * getPurityMultiplier(allInventoryItems.find(inv => inv.id === item.inventory_id)?.purity || '');
+                    const subtotal = pureMetalValue + item.making_charge;
+                    runningSubtotal += subtotal;
+                    tableRows.push([itemName, item.weight_grams.toFixed(3), `₹${item.rate_per_gram.toFixed(2)}`, `₹${item.making_charge.toFixed(2)}`, `₹${subtotal.toFixed(2)}`]);
+                });
+                doc.autoTable({ head: [tableColumn], body: tableRows, startY: 80 });
+                let finalY = doc.lastAutoTable.finalY + 10;
+                const rightAlign = 195;
+                
+                doc.setFontSize(10);
+                doc.text("Subtotal:", 150, finalY, { align: 'right' });
+                doc.text(`₹${runningSubtotal.toFixed(2)}`, rightAlign, finalY, { align: 'right' });
+                finalY += 7;
+                doc.text("Tax (3%):", 150, finalY, { align: 'right' });
+                doc.text(`₹${order.tax_amount.toFixed(2)}`, rightAlign, finalY, { align: 'right' });
+                if(order.additional_charge > 0) {
+                    finalY += 7;
+                    doc.text("Additional Charges:", 150, finalY, { align: 'right' });
+                    doc.text(`₹${order.additional_charge.toFixed(2)}`, rightAlign, finalY, { align: 'right' });
+                }
+                finalY += 7;
+                doc.setFont('helvetica', 'bold');
+                doc.text("Total:", 150, finalY, { align: 'right' });
+                doc.text(`₹${(runningSubtotal + order.tax_amount + order.additional_charge).toFixed(2)}`, rightAlign, finalY, { align: 'right' });
+                doc.setFont('helvetica', 'normal');
+                finalY += 7;
+                doc.text("Discount:", 150, finalY, { align: 'right' });
+                doc.text(`- ₹${order.discount.toFixed(2)}`, rightAlign, finalY, { align: 'right' });
+                finalY += 7;
+                doc.text("Paid Amount:", 150, finalY, { align: 'right' });
+                doc.text(`- ₹${order.paid_amount.toFixed(2)}`, rightAlign, finalY, { align: 'right' });
+                finalY += 7;
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(12);
+                doc.text("Pending Amount:", 150, finalY, { align: 'right' });
+                doc.text(`₹${order.pending_amount.toFixed(2)}`, rightAlign, finalY, { align: 'right' });
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'italic');
+                doc.text("Thank you for your business!", 105, doc.internal.pageSize.height - 10, { align: 'center' });
+                doc.save(`Invoice-${order.physical_bill_number || order.id}.pdf`);
+            };
+            const updatePaginationControls = (totalCount, type) => {
+                const pageInfo = allElements[`${type}PageInfo`];
+                const prevBtn = allElements[`${type}PrevPageBtn`];
+                const nextBtn = allElements[`${type}NextPageBtn`];
+                const controls = allElements[`${type}PaginationControls`];
+                const currentPage = type === 'order' ? currentOrderPage : currentInventoryPage;
+                const totalPages = type === 'order' ? totalOrderPages : totalInventoryPages;
+                pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+                prevBtn.disabled = currentPage <= 1;
+                nextBtn.disabled = currentPage >= totalPages;
+                controls.classList.toggle('hidden', totalCount <= PAGE_SIZE);
+            };
+            allElements.searchForm.addEventListener('submit', (e) => { e.preventDefault(); fetchOrders(allElements.searchInput.value.trim(), 1); });
+            allElements.clearSearchBtn.addEventListener('click', () => { allElements.searchInput.value = ''; fetchOrders('', 1); });
+            allElements.orderPrevPageBtn.addEventListener('click', () => { if (currentOrderPage > 1) { fetchOrders(allElements.searchInput.value.trim(), currentOrderPage - 1); } });
+            allElements.orderNextPageBtn.addEventListener('click', () => { if (currentOrderPage < totalOrderPages) { fetchOrders(allElements.searchInput.value.trim(), currentOrderPage + 1); } });
+            window.deleteOrder = async (orderId) => { if (!confirm('Are you sure you want to delete this order?')) return; const { error } = await supabaseClient.from('orders').delete().eq('id', orderId); if (error) { alert('Failed to delete order.'); } else { fetchOrders(); } };
+            window.editOrder = async (orderId) => {
+                const { data, error } = await supabaseClient.from('orders').select(`*, customers(*), order_items(*)`).eq('id', orderId);
+                if (error || !data || data.length === 0) { alert('Could not fetch order details. The order may have been deleted.'); fetchOrders(); return; }
+                const order = data[0];
+                resetOrderForm();
+                currentEditingOrderId = order.id;
+                currentEditingCustomerId = order.customers.id;
+                document.getElementById('customer-name').value = order.customers.name;
+                document.getElementById('customer-mobile').value = order.customers.mobile || '';
+                document.getElementById('customer-address').value = order.customers.address || '';
+                document.getElementById('physical-bill-number').value = order.physical_bill_number || '';
+                document.getElementById('discount-amount').value = order.discount || 0;
+                document.getElementById('additional-charge').value = order.additional_charge || 0;
+                document.getElementById('paid-amount').value = order.paid_amount || 0;
+                document.getElementById('payment-mode').value = order.payment_mode || 'Cash';
+                document.getElementById('remarks').value = order.remarks || '';
+                allElements.orderItemsContainer.innerHTML = '';
+                if (order.order_items.length > 0) {
+                    order.order_items.forEach(item => addItemRow(item));
+                    allElements.orderItemsContainer.querySelectorAll('.item-row').forEach(row => updateMakingChargeForRow(row));
+                } else {
+                    addItemRow();
+                }
+                calculateOrderTotals();
+                allElements.modalTitle.textContent = 'Edit Order';
+                allElements.submitOrderBtn.textContent = 'Update Order';
+                openModal(allElements.orderModal);
+            };
+            window.shareOrder = async (orderId) => {
+                const { data, error } = await supabaseClient.from('orders').select(`*, customers(*), order_items(*, inventory(item_name))`).eq('id', orderId);
+                if (error || !data || data.length === 0) { alert('Could not fetch order details for sharing.'); return; }
+                const order = data[0];
+                if (!order.customers.mobile) { alert('This customer does not have a mobile number saved.'); return; }
+                let message = `*Order Summary from Gaurangi Jewellers*\n\n*Bill No:* ${order.physical_bill_number || 'N/A'}\n*Customer:* ${order.customers.name}\n*Date:* ${new Date(order.created_at).toLocaleDateString('en-IN')}\n\n*Items:*\n`;
+                let runningSubtotal = 0;
+                order.order_items.forEach(item => {
+                    const itemName = item.inventory ? item.inventory.item_name : 'Custom Item';
+                    const pureMetalValue = item.weight_grams * item.rate_per_gram * getPurityMultiplier(allInventoryItems.find(inv => inv.id === item.inventory_id)?.purity || '');
+                    const subtotal = pureMetalValue + item.making_charge;
+                    runningSubtotal += subtotal;
+                    message += `- ${itemName} (${item.metal_type}): ${item.weight_grams}g @ ₹${item.rate_per_gram}/g + ₹${item.making_charge} making = *₹${subtotal.toFixed(2)}*\n`;
+                });
+                const totalWithTaxAndCharges = runningSubtotal + order.tax_amount + order.additional_charge;
+                message += `\n*Subtotal:* ₹${runningSubtotal.toFixed(2)}\n*Tax (3%):* + ₹${order.tax_amount.toFixed(2)}\n`;
+                if(order.additional_charge > 0) message += `*Additional Charges:* + ₹${order.additional_charge.toFixed(2)}\n`;
+                message += `*Total:* *₹${totalWithTaxAndCharges.toFixed(2)}*\n*Discount:* - ₹${order.discount.toFixed(2)}\n*Paid Amount:* - ₹${order.paid_amount.toFixed(2)}*\n*Pending Amount:* *₹${order.pending_amount.toFixed(2)}*\n\n`;
+                if(order.remarks) { message += `*Remarks:* ${order.remarks}\n\n`; }
+                message += `Thank you for your business!`;
+                window.open(`https://wa.me/${order.customers.mobile}?text=${encodeURIComponent(message)}`, '_blank');
+            };
+
+            // --- INVENTORY LOGIC ---
+            const fetchInventory = async (searchTerm = '', page = 1) => {
+                const from = (page - 1) * PAGE_SIZE;
+                const to = page * PAGE_SIZE - 1;
+                let query = supabaseClient.from('inventory').select('*', { count: 'exact' });
+                if (searchTerm) query = query.or(`item_id.ilike.%${searchTerm}%,item_name.ilike.%${searchTerm}%`);
+                const { data, error, count } = await query.order('created_at', { ascending: false }).range(from, to);
+                if (error) { console.error('Error fetching inventory:', error); return; }
+                totalInventoryPages = Math.ceil(count / PAGE_SIZE);
+                currentInventoryPage = page;
+                displayInventory(data);
+                updatePaginationControls(count, 'inventory');
+            };
+            const displayInventory = (items) => {
+                allElements.inventoryTableBody.innerHTML = '';
+                allElements.noInventoryMsg.classList.toggle('hidden', items.length > 0);
+                items.forEach(item => {
+                    const stockQty = item.stock_qty > 0 ? item.stock_qty : 1;
+                    const singleItemWeight = item.weight_grams / stockQty;
+                    const singleItemMakingCharge = item.making_charges / stockQty;
+                    const purityMultiplier = getPurityMultiplier(item.purity);
+                    const singleItemValue = (singleItemWeight * item.unit_price * purityMultiplier) + singleItemMakingCharge;
+                    
+                    const purchasePrice = (item.weight_grams * item.unit_price * purityMultiplier) + item.making_charges;
+                    const pendingToSupplier = purchasePrice - (item.paid_to_supplier || 0);
+
+                    allElements.inventoryTableBody.innerHTML += `<tr class="border-b"><td class="table-cell">${item.item_name}</td><td class="table-cell">${item.category}</td><td class="table-cell">${item.stock_qty}</td><td class="table-cell">₹${singleItemValue.toFixed(2)}</td><td class="table-cell text-red-600 font-semibold">₹${pendingToSupplier.toFixed(2)}</td><td class="table-cell"><div class="flex gap-2"><button class="btn btn-outline text-xs" onclick="editInventoryItem(${item.id})">Edit</button><button class="btn btn-delete text-xs" onclick="deleteInventoryItem(${item.id})">Delete</button></div></td></tr>`;
+                });
+            };
+
+            const generateItemId = () => {
+                if (currentEditingInventoryId) return;
+
+                const categorySelect = document.getElementById('item-category');
+                const materialSelect = document.getElementById('item-material');
+                const itemIdInput = document.getElementById('item-id');
+                const itemNameInput = document.getElementById('item-name');
+
+                const categoryCode = (categorySelect.value.substring(0, 3) || 'XXX').toUpperCase();
+                const materialCode = (materialSelect.value.substring(0, 3) || 'XXX').toUpperCase();
+
+                const uniqueNumber = `${Date.now().toString().slice(-4)}${Math.floor(Math.random() * 90 + 10)}`;
+
+                const newId = `${categoryCode}${materialCode}${uniqueNumber}`;
+                itemIdInput.value = newId;
+
+                itemNameInput.value = newId + ' ';
+            };
+
+            const calculateInventoryPurchasePrice = () => {
+                const weight = parseFloat(document.getElementById('item-weight').value) || 0;
+                const price = parseFloat(document.getElementById('item-price').value) || 0;
+                const makingCharges = parseFloat(document.getElementById('item-making-charges').value) || 0;
+                const paid = parseFloat(allElements.paidToSupplierInput.value) || 0;
+                const purity = document.getElementById('item-purity').value;
+                
+                const purityMultiplier = getPurityMultiplier(purity);
+                const purchasePrice = (weight * price * purityMultiplier) + makingCharges;
+                const pending = purchasePrice - paid;
+
+                allElements.purchasePriceDisplay.textContent = `₹${purchasePrice.toFixed(2)}`;
+                allElements.pendingToSupplierDisplay.textContent = `₹${pending.toFixed(2)}`;
+            };
+            allElements.inventoryForm.addEventListener('input', calculateInventoryPurchasePrice);
+
+            allElements.inventorySearchForm.addEventListener('submit', (e) => { e.preventDefault(); fetchInventory(allElements.inventorySearchInput.value.trim(), 1); });
+            allElements.inventoryClearSearchBtn.addEventListener('click', () => { allElements.inventorySearchInput.value = ''; fetchInventory('', 1); });
+            allElements.inventoryPrevPageBtn.addEventListener('click', () => { if (currentInventoryPage > 1) fetchInventory(allElements.inventorySearchInput.value.trim(), currentInventoryPage - 1); });
+            allElements.inventoryNextPageBtn.addEventListener('click', () => { if (currentInventoryPage < totalInventoryPages) fetchInventory(allElements.inventorySearchInput.value.trim(), currentInventoryPage + 1); });
+            const resetInventoryForm = () => {
+                allElements.inventoryForm.reset();
+                currentEditingInventoryId = null;
+                allElements.inventoryModalTitle.textContent = 'Add New Item';
+                allElements.submitInventoryBtn.textContent = 'Submit Item';
+                //document.getElementById('item-id').value = `GJ-${Date.now()}`;
+                generateItemId(); // This will generate the new readable ID.
+                calculateInventoryPurchasePrice();
+            };
+            window.editInventoryItem = async (itemId) => {
+                const { data, error } = await supabaseClient.from('inventory').select('*').eq('id', itemId);
+                if (error || !data || data.length === 0) { alert('Could not fetch item details.'); fetchInventory(); return; }
+                const item = data[0];
+                resetInventoryForm();
+                currentEditingInventoryId = item.id;
+                document.getElementById('item-id').value = item.item_id;
+                document.getElementById('item-name').value = item.item_name;
+                document.getElementById('item-category').value = item.category || '';
+                document.getElementById('item-material').value = item.material || '';
+                document.getElementById('item-weight').value = item.weight_grams || '';
+                document.getElementById('item-purity').value = item.purity || '';
+                document.getElementById('item-stock').value = item.stock_qty;
+                document.getElementById('item-price').value = item.unit_price || '';
+                document.getElementById('item-making-charges').value = item.making_charges || 0;
+                document.getElementById('item-sell-making-charge-percent').value = item.sell_making_charge_percent || 0;
+                document.getElementById('item-supplier').value = item.supplier || '';
+                document.getElementById('purchase-date').value = item.purchase_date;
+                allElements.paidToSupplierInput.value = item.paid_to_supplier || 0;
+                allElements.inventoryModalTitle.textContent = 'Edit Inventory Item';
+                allElements.submitInventoryBtn.textContent = 'Update Item';
+                calculateInventoryPurchasePrice();
+                openModal(allElements.inventoryModal);
+            };
+            window.deleteInventoryItem = async (itemId) => {
+                if (!confirm('Are you sure you want to delete this inventory item?')) return;
+                const { error } = await supabaseClient.from('inventory').delete().eq('id', itemId);
+                if (error) { alert('Failed to delete item.'); } else { fetchInventory(); }
+            };
+            allElements.inventoryForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                allElements.submitInventoryBtn.disabled = true;
+                const itemData = {
+                    item_id: document.getElementById('item-id').value,
+                    item_name: document.getElementById('item-name').value,
+                    category: document.getElementById('item-category').value,
+                    material: document.getElementById('item-material').value,
+                    weight_grams: parseFloat(document.getElementById('item-weight').value),
+                    purity: document.getElementById('item-purity').value,
+                    stock_qty: parseInt(document.getElementById('item-stock').value),
+                    unit_price: parseFloat(document.getElementById('item-price').value),
+                    making_charges: parseFloat(document.getElementById('item-making-charges').value),
+                    sell_making_charge_percent: parseFloat(document.getElementById('item-sell-making-charge-percent').value),
+                    supplier: document.getElementById('item-supplier').value,
+                    purchase_date: document.getElementById('purchase-date').value,
+                    paid_to_supplier: parseFloat(allElements.paidToSupplierInput.value)
+                };
+                let error;
+                if (currentEditingInventoryId) ({ error } = await supabaseClient.from('inventory').update(itemData).eq('id', currentEditingInventoryId));
+                else ({ error } = await supabaseClient.from('inventory').insert(itemData));
+                if (error) alert('Failed to save item. Item name might already be in use.');
+                else {
+                    alert(`Item ${currentEditingInventoryId ? 'updated' : 'added'} successfully!`);
+                    closeModal(allElements.inventoryModal);
+                    fetchInventory();
+                    fetchAllInventoryItems();
+                }
+                allElements.submitInventoryBtn.disabled = false;
+            });
+
+            // --- INITIALIZE ---
+            const checkSession = async () => { const { data: { session } } = await supabaseClient.auth.getSession(); if (session) showDashboard(); else showLogin(); };
+            allElements.loginForm.addEventListener('submit', async (e) => { e.preventDefault(); const email = document.getElementById('email').value; const password = document.getElementById('password').value; allElements.loginButton.disabled = true; allElements.loginButton.textContent = 'Logging in...'; allElements.loginError.textContent = ''; const { error } = await supabaseClient.auth.signInWithPassword({ email, password }); if (error) allElements.loginError.textContent = 'Invalid login credentials.'; else showDashboard(); allElements.loginButton.disabled = false; allElements.loginButton.textContent = 'Login'; });
+            allElements.logoutButton.addEventListener('click', async () => { await supabaseClient.auth.signOut(); showLogin(); });
+            const fetchCategories = async () => { 
+                const { data, error } = await supabaseClient.from('categories').select('*').order('name'); 
+                if (error) { console.error('Error fetching categories:', error); return; } 
+                allCategories = data; 
+                displayCategories(data); 
+                populateCategoryDropdown(data, allElements.imageCategorySelect);
+                populateCategoryDropdown(data, allElements.inventoryItemCategory, true);
+            };
+            const displayCategories = (categories) => { allElements.categoryList.innerHTML = ''; categories.forEach(cat => { allElements.categoryList.innerHTML += `<div class="flex justify-between items-center bg-gray-50 p-2 rounded-md"><span>${cat.name}</span><button class="text-red-500 hover:text-red-700 font-bold text-xl" onclick="deleteCategory(${cat.id})">&times;</button></div>`; }); };
+            const populateCategoryDropdown = (categories, selectElement, includeDefault = false) => { 
+                selectElement.innerHTML = ''; 
+                if (categories.length === 0) selectElement.innerHTML = '<option disabled>Please add a category first</option>'; 
+                else { 
+                    if(includeDefault) selectElement.innerHTML = '<option value="">Select a Category</option>';
+                    categories.forEach(cat => { selectElement.innerHTML += `<option value="${includeDefault ? cat.name : cat.name.toLowerCase()}">${cat.name}</option>`; }); 
+                } 
+            };
+            const fetchMaterials = async () => { const { data, error } = await supabaseClient.from('materials').select('*').order('name'); if (error) { console.error('Error fetching materials:', error); return; } populateDropdown(data, allElements.inventoryItemMaterial, 'No materials found'); };
+            const fetchSuppliers = async () => { const { data, error } = await supabaseClient.from('suppliers').select('*').order('name'); if (error) { console.error('Error fetching suppliers:', error); return; } populateDropdown(data, allElements.inventoryItemSupplier, 'No suppliers found'); };
+            const populateDropdown = (items, selectElement, emptyMsg) => { 
+                selectElement.innerHTML = ''; 
+                if (items.length === 0) selectElement.innerHTML = `<option disabled>${emptyMsg}</option>`; 
+                else {
+                    selectElement.innerHTML = '<option value="">Select an option</option>';
+                    items.forEach(item => { selectElement.innerHTML += `<option value="${item.name}">${item.name}</option>`; }); 
+                }
+            };
+            const fetchAllInventoryItems = async () => { 
+                const { data, error } = await supabaseClient.from('inventory').select('id, item_name, material, weight_grams, unit_price, sell_making_charge_percent, purity'); 
+                if(error) { console.error('Error fetching all inventory items:', error); return; } 
+                allInventoryItems = data; 
+            };
+            const populateOrderItemInventoryDropdown = (select, selectedValue = null) => {
+                select.innerHTML = '<option value="">Select an Item</option>';
+                if(allInventoryItems.length > 0) {
+                    allInventoryItems.forEach(item => {
+                        const option = document.createElement('option');
+                        option.value = item.id;
+                        option.textContent = item.item_name;
+                        select.appendChild(option);
+                    });
+                }
+                if (selectedValue) select.value = selectedValue;
+            };
+            const fetchMetalRates = async () => {
+                const { data, error } = await supabaseClient.from('metal_rates').select('*');
+                if (error) {
+                    console.error('Error fetching metal rates:', error);
+                    return;
+                }
+                data.forEach(rate => {
+                    currentMetalRates[rate.metal_name] = rate.rate_per_gram;
+                });
+                document.getElementById('gold-rate').value = currentMetalRates['Gold'] || 0;
+                document.getElementById('silver-rate').value = currentMetalRates['Silver'] || 0;
+            };
+
+            //Analytics method
+            const calculateAnalytics = async () => {
+                // 1. Fetch ALL orders and inventory data, not just one page
+                const { data: allOrders, error: ordersError } = await supabaseClient.from('orders').select('*, order_items(*)');
+                const { data: allInventory, error: inventoryError } = await supabaseClient.from('inventory').select('*');
+
+                if (ordersError || inventoryError) {
+                    alert('Could not fetch data to calculate analytics.');
+                    return;
+                }
+
+                // 2. Calculate Inventory Metrics
+                let totalInventoryValue = 0;
+                const inventoryCostMap = new Map();
+
+                allInventory.forEach(item => {
+                    const purityMultiplier = getPurityMultiplier(item.purity);
+                    const costPrice = (item.weight_grams * item.unit_price * purityMultiplier) + item.making_charges;
+                    totalInventoryValue += costPrice;
+                    inventoryCostMap.set(item.id, costPrice);
+                });
+
+                // 3. Calculate Order Metrics and Profit
+                let totalRevenue = 0;
+                let totalPaid = 0;
+                let totalPending = 0;
+                let totalCOGS = 0; // Cost of Goods Sold
+
+                allOrders.forEach(order => {
+                    totalRevenue += order.total_amount;
+                    totalPaid += order.paid_amount;
+                    totalPending += order.pending_amount;
+
+                    order.order_items.forEach(item => {
+                        if (inventoryCostMap.has(item.inventory_id)) {
+                            totalCOGS += inventoryCostMap.get(item.inventory_id);
+                        }
+                    });
+                });
+
+                const grossProfit = totalRevenue - totalCOGS;
+                const profitMargin = totalRevenue > 0 ? (grossProfit / totalRevenue) * 100 : 0;
+                const averageOrderValue = allOrders.length > 0 ? totalRevenue / allOrders.length : 0;
+
+                // 4. Update the KPI Cards
+                document.getElementById('analytics-total-revenue').textContent = `₹${totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
+                document.getElementById('analytics-gross-profit').textContent = `₹${grossProfit.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
+                document.getElementById('analytics-total-pending').textContent = `₹${totalPending.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
+                document.getElementById('analytics-inventory-value').textContent = `₹${totalInventoryValue.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
+
+                // 5. Update the Order Summary
+                document.getElementById('analytics-total-orders').textContent = allOrders.length;
+                document.getElementById('analytics-total-paid').textContent = `₹${totalPaid.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
+                document.getElementById('analytics-avg-order-value').textContent = `₹${averageOrderValue.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
+                document.getElementById('analytics-profit-margin').textContent = `${profitMargin.toFixed(2)}%`;
+
+                // 6. Update Top 5 Most Valuable Items
+                const topItemsList = document.getElementById('analytics-top-items');
+                topItemsList.innerHTML = '';
+                allInventory
+                    .map(item => ({ name: item.item_name, value: inventoryCostMap.get(item.id)}))
+                    .sort((a, b) => b.value - a.value)
+                    .slice(0, 5)
+                    .forEach(item => {
+                        topItemsList.innerHTML += `<li class="flex justify-between border-b pb-1"><span class="text-gray-700">${item.name}</span><span class="font-semibold">₹${item.value.toLocaleString('en-IN')}</span></li>`;
+                    });
+            };
+
+            // Add this new listener for the refresh button
+            document.getElementById('refresh-analytics-btn').addEventListener('click', calculateAnalytics);
+
+            // Analytics method ends here
+
+            allElements.ratesForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const goldRate = parseFloat(document.getElementById('gold-rate').value);
+                const silverRate = parseFloat(document.getElementById('silver-rate').value);
+
+                const { error: goldError } = await supabaseClient.from('metal_rates').update({ rate_per_gram: goldRate }).eq('metal_name', 'Gold');
+                const { error: silverError } = await supabaseClient.from('metal_rates').update({ rate_per_gram: silverRate }).eq('metal_name', 'Silver');
+
+                if (goldError || silverError) {
+                    alert('Failed to update rates.');
+                } else {
+                    alert('Rates updated successfully!');
+                    fetchMetalRates();
+                }
+            });
+
+            allElements.inventoryForm.addEventListener('change', (e) => {
+                if(e.target.id === 'item-material') {
+                    const material = e.target.value;
+                    const priceInput = document.getElementById('item-price');
+                    if(currentMetalRates[material]) {
+                        priceInput.value = currentMetalRates[material];
+                    } else {
+                        priceInput.value = 0;
+                    }
+                }
+            });
+
+            allElements.categoryForm.addEventListener('submit', async (e) => { e.preventDefault(); const categoryNameInput = document.getElementById('category-name'); const name = categoryNameInput.value.trim(); if (!name) return; const { error } = await supabaseClient.from('categories').insert([{ name: name }]); if (error) { alert('Failed to add category. It might already exist.'); } else { categoryNameInput.value = ''; fetchCategories(); } });
+            window.deleteCategory = async (categoryId) => { if (!confirm('Are you sure you want to delete this category?')) return; const { error } = await supabaseClient.from('categories').delete().eq('id', categoryId); if (error) { alert('Failed to delete category.'); } else { fetchCategories(); } };
+            const fetchCatalogImages = async () => { const { data, error } = await supabaseClient.storage.from(BUCKET_NAME).list('', { limit: 100, sortBy: { column: 'created_at', order: 'desc' } }); if (error) { console.error('Error fetching images:', error); return; } displayCatalogImages(data); };
+            const displayCatalogImages = (images) => { allElements.catalogGrid.innerHTML = ''; const validImages = images.filter(img => img.name !== '.emptyFolderPlaceholder'); allElements.noImagesMsg.classList.toggle('hidden', validImages.length > 0); validImages.forEach(image => { const { data: { publicUrl } } = supabaseClient.storage.from(BUCKET_NAME).getPublicUrl(image.name); allElements.catalogGrid.innerHTML += `<div class="relative group border rounded-lg overflow-hidden"><img src="${publicUrl}" alt="${image.name}" class="w-full h-40 object-cover"><div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"><button class="btn btn-delete text-xs" onclick="deleteImage('${image.name}')">Delete</button></div></div>`; }); };
+            allElements.uploadForm.addEventListener('submit', async (e) => { e.preventDefault(); const title = document.getElementById('image-title').value; const category = document.getElementById('image-category').value; const file = document.getElementById('image-file').files[0]; if (!file || !category) { allElements.uploadStatus.textContent = 'Please select a file and category.'; return; } allElements.uploadBtn.disabled = true; allElements.uploadBtn.textContent = 'Uploading...'; const fileName = `${category}_${title.replace(/\s+/g, '-')}_${Date.now()}.${file.name.split('.').pop()}`; const { error } = await supabaseClient.storage.from(BUCKET_NAME).upload(fileName, file); if (error) { allElements.uploadStatus.textContent = 'Upload failed.'; } else { allElements.uploadStatus.textContent = 'Upload successful!'; allElements.uploadForm.reset(); fetchCatalogImages(); } allElements.uploadBtn.disabled = false; allElements.uploadBtn.textContent = 'Upload Image'; setTimeout(() => allElements.uploadStatus.textContent = '', 4000); });
+            window.deleteImage = async (imageName) => { if (!confirm(`Are you sure you want to delete ${imageName}?`)) return; const { error } = await supabaseClient.storage.from(BUCKET_NAME).remove([imageName]); if (error) { alert('Failed to delete image.'); } else { fetchCatalogImages(); } };
+            allElements.refreshImagesBtn.addEventListener('click', fetchCatalogImages);
+
+            
+            document.getElementById('item-category').addEventListener('change', generateItemId);
+            document.getElementById('item-material').addEventListener('change', generateItemId);
+
+            checkSession();
+        });
+    </script>
+</body>
+</html>
+
