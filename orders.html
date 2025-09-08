@@ -383,6 +383,8 @@ function renderPagination() {
             app.formPage.summary.pendingAmount.textContent = formatCurrency(pendingAmount);
             document.getElementById('summary-total-tax').textContent = formatCurrency(totalTax);
             document.getElementById('summary-additional-charge').textContent = formatCurrency(additionalCharge);
+
+            document.getElementById('discounted-amount').textContent = formatCurrency(discount);
             
             const pendingContainer = app.formPage.summary.pendingAmount.parentElement;
             pendingContainer.classList.remove('bg-red-100', 'text-red-800', 'bg-green-100', 'text-green-800');
@@ -419,6 +421,8 @@ function renderPagination() {
 
                 // 2. Insert Order
                 const totals = calculateTotals();
+                const discountAmount = parseFloat(formData.get('discount')) || 0;
+const totalTax = parseFloat(document.getElementById('summary-total-tax').textContent.replace(/[^\d.-]/g, '')) || 0;
                 const { data: orderData, error: orderError } = await supabase
                     .from('gawrangi_orders')
                     .insert({
@@ -434,7 +438,8 @@ function renderPagination() {
                         total_buy: totals.totalBuy,
                         total_return: totals.totalReturn,
                         final_total: totals.finalTotal,
-                        pending_amount: totals.pendingAmount
+                        pending_amount: totals.pendingAmount,
+                        tax: totalTax
                     })
                     .select()
                     .single();
@@ -531,6 +536,7 @@ function renderPagination() {
                 <div class="mt-6 pt-4 border-t text-sm space-y-2">
                     <div class="flex justify-between"><span>Total Buy:</span><span class="font-semibold">${formatCurrency(order.total_buy)}</span></div>
                     <div class="flex justify-between"><span>Total Return:</span><span class="font-semibold">${formatCurrency(order.total_return)}</span></div>
+                    <div class="flex justify-between"><span>Tax Amount:</span><span class="font-semibold">${formatCurrency(order.tax)}</span></div>
                     <div class="flex justify-between"><span>Discount:</span><span class="font-semibold text-red-600">-${formatCurrency(order.discount)}</span></div>
                     <div class="flex justify-between"><span>Additional Charges:</span><span class="font-semibold text-green-600">+${formatCurrency(order.additional_charge)}</span></div>
                     <hr class="my-2">
@@ -943,6 +949,7 @@ function showReceivePaymentForm(orderId, pendingAmount) {
                                 <hr><div class="flex justify-between items-center text-lg"><span class="font-bold">Net Total:</span> <span id="net-total" class="font-bold">₹0.00</span></div>
                                 <div class="flex justify-between items-center"><span class="font-medium">Additional Charge:</span> <span id="summary-additional-charge" class="font-semibold text-green-600">₹0.00</span></div>
                                 <div class="flex justify-between items-center"><span class="font-medium">Total Tax (3%):</span> <span id="summary-total-tax" class="font-semibold">₹0.00</span></div>
+                                <div class="flex justify-between items-center"><span class="font-medium">Discounted Amount:</span> <span id="discounted-amount" class="font-semibold text-red-600">₹0.00</span></div>
                                 <hr>
                                 <div class="flex justify-between items-center text-xl"><span class="font-bold text-indigo-900">Final Amount:</span> <span id="final-amount" class="font-bold text-indigo-900">₹0.00</span></div>
                                 <div class="mt-4"><label for="paidAmount" class="block text-sm font-medium text-gray-700">Amount Paid (₹)</label><input type="number" name="paidAmount" id="paidAmount" step="any" value="0" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm text-lg font-bold"></div>

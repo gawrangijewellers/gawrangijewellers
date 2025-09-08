@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supplier Purchase Order Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @media (max-width: 768px) {
+            .max-w-7xl { max-width: 100vw; }
+            .p-4, .md\:p-8 { padding: 1rem !important; }
+            .rounded-lg, .shadow, .shadow-md, .shadow-inner { border-radius: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.07); }
+            .flex { flex-direction: column !important; gap: 1rem; }
+            .grid-cols-3, .md\:grid-cols-3, .md\:grid-cols-4, .md\:col-span-2, .md\:grid-cols-3, .sm\:grid-cols-2 { grid-template-columns: 1fr !important; }
+            .mb-6 { margin-bottom: 1.5rem !important; }
+            .overflow-x-auto { overflow-x: auto; }
+            table { font-size: 0.95rem; }
+            th, td { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+            .text-3xl { font-size: 1.5rem !important; }
+            .text-xl { font-size: 1.1rem !important; }
+            .text-lg { font-size: 1rem !important; }
+            .max-w-md, .max-w-lg { max-width: 100vw !important; }
+            .w-full { width: 100% !important; }
+            .mx-auto { margin-left: 0 !important; margin-right: 0 !important; }
+        }
+        @media (max-width: 480px) {
+            .p-4, .md\:p-8 { padding: 0.5rem !important; }
+            .mb-6 { margin-bottom: 1rem !important; }
+            .rounded-lg { border-radius: 0.5rem; }
+            .text-3xl { font-size: 1.1rem !important; }
+            .text-xl { font-size: 1rem !important; }
+            .text-lg { font-size: 0.95rem !important; }
+            th, td { padding-left: 0.25rem !important; padding-right: 0.25rem !important; }
+        }
+    </style>
+    <script type="module">
+        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+        // --- Supabase Config ---
+        const SUPABASE_URL = 'https://lyuaqxdzilptauihsfyf.supabase.co'; 
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5dWFxeGR6aWxwdGF1aWhzZnlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU1ODQ2OTUsImV4cCI6MjA3MTE2MDY5NX0.Sf5skwobAoV26pHks6EeS2__aDVM3o5mT7Ensp6HIxQ';
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // --- DOM Elements ---
+
+        document.getElementById('new-purchase-btn').onclick = () => {
+            document.getElementById('list-page').classList.add('hidden');
+            document.getElementById('form-page').classList.remove('hidden');
+        };
+        document.getElementById('form-back-btn').onclick = () => {
+            document.getElementById('form-page').classList.add('hidden');
+            document.getElementById('list-page').classList.remove('hidden');
+        };
+        const purchaseForm = document.getElementById('purchase-order-form');
+        const purchaseItemsBody = document.getElementById('purchase-items-body');
+        const supplierReturnItemsBody = document.getElementById('supplier-return-items-body');
+        const addPurchaseItemBtn = document.getElementById('add-purchase-item-btn');
+        const addSupplierReturnItemBtn = document.getElementById('add-supplier-return-item-btn');
+        const supplierSelect = document.getElementById('supplierSelect');
+        const supplierNameInput = document.getElementById('supplierName');
+        const supplierPhoneInput = document.getElementById('supplierPhone');
+        const supplierGSTInput = document.getElementById('supplierGST');
+        const saveBtn = document.getElementById('save-purchase-order-btn');
+
+        // Set default date to today
+        document.getElementById('purchaseOrderDate').value = new Date().toISOString().split('T')[0];
+
+        // --- State ---
+        let purchaseItems = [];
+        let supplierReturnItems = [];
+        let supplierCache = [];
+        let editOrderId = null;
+
+        // --- Utility Functions ---
+        function formatCurrency(val) {
+            return '₹' + (parseFloat(val) || 0).toFixed(2);
+        }
+
+        // --- Item Row Renderers ---
+        function renderPurchaseItems() {
+            purchaseItemsBody.innerHTML = '';
+            purchaseItems.forEach((item, idx) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-4 py-2"><input type="text" value="${item.item_name || ''}" class="w-24 p-1 border rounded"></td>
+                    <td class="px-4 py-2">
+                        <select class="w-20 p-1 border rounded">
+                            <option value="Gold" ${item.metal_type === 'Gold' ? 'selected' : ''}>Gold</option>
+                            <option value="Silver" ${item.metal_type === 'Silver' ? 'selected' : ''}>Silver</option>
+                        </select>
+                    </td>
+                    <td class="px-4 py-2"><input type="number" step="any" value="${item.weight || ''}" class="w-20 p-1 border rounded"></td>
+                    <td class="px-4 py-2"><input type="number" step="any" value="${item.purity || ''}" class="w-20 p-1 border rounded"></td>
+                    <td class="px-4 py-2"><input type="number" step="any" value="${item.rate_per_gram || ''}" class="w-20 p-1 border rounded"></td>
+                    <td class="px-4 py-2"><input type="number" step="any" value="${item.making_charge_percentage || ''}" class="w-16 p-1 border rounded"></td>
+                    <td class="px-4 py-2"><input type="number" step="any" value="${item.tax_percentage || ''}" class="w-16 p-1 border rounded"></td>
+                    <td class="px-4 py-2"><button type="button" class="text-red-600 remove-purchase-item-btn">Delete</button></td>
+                `;
+                purchaseItemsBody.appendChild(tr);
+
+                // Add event listeners for each input
+                const inputs = tr.querySelectorAll('input,select');
+                inputs[0].addEventListener('input', e => { purchaseItems[idx].item_name = e.target.value; calculateTotals(); });
+                inputs[1].addEventListener('change', e => { purchaseItems[idx].metal_type = e.target.value; calculateTotals(); });
+                inputs[2].addEventListener('input', e => { purchaseItems[idx].weight = parseFloat(e.target.value) || 0; calculateTotals(); });
+                inputs[3].addEventListener('input', e => { purchaseItems[idx].purity = parseFloat(e.target.value) || 0; calculateTotals(); });
+                inputs[4].addEventListener('input', e => { purchaseItems[idx].rate_per_gram = parseFloat(e.target.value) || 0; calculateTotals(); });
+                inputs[5].addEventListener('input', e => { purchaseItems[idx].making_charge_percentage = parseFloat(e.target.value) || 0; calculateTotals(); });
+                inputs[6].addEventListener('input', e => { purchaseItems[idx].tax_percentage = parseFloat(e.target.value) || 0; calculateTotals(); });
+
+                // Remove item button
+                tr.querySelector('.remove-purchase-item-btn').addEventListener('click', () => {
+                    purchaseItems.splice(idx, 1);
+                    renderPurchaseItems();
+                    calculateTotals();
+                });
+            });
+        }
+
+        function renderSupplierReturnItems() {
+            supplierReturnItemsBody.innerHTML = '';
+            supplierReturnItems.forEach((item, idx) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-4 py-2"><input type="text" value="${item.item_name || ''}" class="w-24 p-1 border rounded"></td>
+                    <td class="px-4 py-2">
+                        <select class="w-20 p-1 border rounded">
+                            <option value="Gold" ${item.metal_type === 'Gold' ? 'selected' : ''}>Gold</option>
+                            <option value="Silver" ${item.metal_type === 'Silver' ? 'selected' : ''}>Silver</option>
+                        </select>
+                    </td>
+                    <td class="px-4 py-2"><input type="number" step="any" value="${item.weight || ''}" class="w-20 p-1 border rounded"></td>
+                    <td class="px-4 py-2"><input type="number" step="any" value="${item.purity || ''}" class="w-20 p-1 border rounded"></td>
+                    <td class="px-4 py-2"><input type="number" step="any" value="${item.rate_per_gram || ''}" class="w-20 p-1 border rounded"></td>
+                    <td class="px-4 py-2"><button type="button" class="text-red-600 remove-supplier-return-item-btn">Delete</button></td>
+                `;
+                supplierReturnItemsBody.appendChild(tr);
+
+                const inputs = tr.querySelectorAll('input,select');
+                inputs[0].addEventListener('input', e => { supplierReturnItems[idx].item_name = e.target.value; calculateTotals(); });
+                inputs[1].addEventListener('change', e => { supplierReturnItems[idx].metal_type = e.target.value; calculateTotals(); });
+                inputs[2].addEventListener('input', e => { supplierReturnItems[idx].weight = parseFloat(e.target.value) || 0; calculateTotals(); });
+                inputs[3].addEventListener('input', e => { supplierReturnItems[idx].purity = parseFloat(e.target.value) || 0; calculateTotals(); });
+                inputs[4].addEventListener('input', e => { supplierReturnItems[idx].rate_per_gram = parseFloat(e.target.value) || 0; calculateTotals(); });
+
+                tr.querySelector('.remove-supplier-return-item-btn').addEventListener('click', () => {
+                    supplierReturnItems.splice(idx, 1);
+                    renderSupplierReturnItems();
+                    calculateTotals();
+                });
+            });
+        }
+
+        // --- Add/Remove Item Functions ---
+        addPurchaseItemBtn.onclick = () => {
+            purchaseItems.push({
+                item_name: '', metal_type: 'Gold', weight: 0, purity: 0, rate_per_gram: 0, making_charge_percentage: 0, tax_percentage: 0
+            });
+            renderPurchaseItems();
+        };
+        addSupplierReturnItemBtn.onclick = () => {
+            supplierReturnItems.push({
+                item_name: '', metal_type: 'Gold', weight: 0, purity: 0, rate_per_gram: 0
+            });
+            renderSupplierReturnItems();
+        };
+
+        // --- Calculation Logic ---
+        function calculateTotals() {
+            let totalPurchase = 0, totalTax = 0;
+            purchaseItems.forEach(item => {
+                const base = (item.weight || 0) * (item.purity || 0) * (item.rate_per_gram || 0) / 100;
+                const making = (item.weight || 0) * ((item.making_charge_percentage || 0) / 100) * (item.rate_per_gram || 0);
+                const tax = (base + making) * ((item.tax_percentage || 0) / 100);
+                totalPurchase += base + making + tax;
+                totalTax += tax;
+            });
+
+            let totalReturn = 0;
+            supplierReturnItems.forEach(item => {
+                const base = (item.weight || 0) * (item.purity || 0) * (item.rate_per_gram || 0) / 100;
+                totalReturn += base;
+            });
+
+            const discount = parseFloat(document.getElementById('purchaseDiscount').value) || 0;
+            const additionalCharge = parseFloat(document.getElementById('purchaseAdditionalCharge').value) || 0;
+            const netTotal = totalPurchase - totalReturn;
+            const discountedAmount = discount;
+            const finalAmount = netTotal + additionalCharge - discountedAmount;
+            const paidAmount = parseFloat(document.getElementById('purchasePaidAmount').value) || 0;
+            const pendingAmount = finalAmount - paidAmount;
+
+            document.getElementById('total-purchase').textContent = formatCurrency(totalPurchase);
+            document.getElementById('total-supplier-return').textContent = formatCurrency(totalReturn);
+            document.getElementById('net-purchase-total').textContent = formatCurrency(netTotal);
+            document.getElementById('purchase-summary-additional-charge').textContent = formatCurrency(additionalCharge);
+            document.getElementById('purchase-summary-total-tax').textContent = formatCurrency(totalTax);
+            document.getElementById('purchase-discounted-amount').textContent = formatCurrency(discountedAmount);
+            document.getElementById('purchase-final-amount').textContent = formatCurrency(finalAmount);
+            document.getElementById('purchase-pending-amount').textContent = formatCurrency(pendingAmount);
+
+            return {
+                totalPurchase, totalReturn, totalTax, netTotal, discountedAmount, additionalCharge, finalAmount, paidAmount, pendingAmount
+            };
+        }
+        purchaseForm.addEventListener('input', calculateTotals);
+
+        // --- Initial render ---
+        renderPurchaseItems();
+        renderSupplierReturnItems();
+        calculateTotals();
+
+        // --- Supplier Dropdown & Filtering ---
+        async function loadSuppliers(filter = '') {
+            supplierSelect.innerHTML = '';
+            const newOpt = document.createElement('option');
+            newOpt.value = 'new';
+            newOpt.textContent = 'Add New Supplier';
+            supplierSelect.appendChild(newOpt);
+
+            let { data: suppliers } = await supabase.from('gawrangi_suppliers').select('id, name, phone, gst_number');
+            if (filter) {
+                suppliers = suppliers.filter(s =>
+                    s.name.toLowerCase().includes(filter.toLowerCase()) ||
+                    (s.phone && s.phone.toLowerCase().includes(filter.toLowerCase()))
+                );
+            }
+            supplierCache = suppliers || [];
+            suppliers.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = `${s.name} (${s.phone || ''})`;
+                supplierSelect.appendChild(opt);
+            });
+        }
+        loadSuppliers();
+
+        // --- Auto-fill supplier details when selected ---
+        supplierSelect.addEventListener('change', () => {
+            if (supplierSelect.value === 'new') {
+                supplierNameInput.value = '';
+                supplierPhoneInput.value = '';
+                supplierGSTInput.value = '';
+                supplierNameInput.readOnly = false;
+                supplierPhoneInput.readOnly = false;
+                supplierGSTInput.readOnly = false;
+            } else {
+                const selected = supplierCache.find(s => s.id === supplierSelect.value);
+                if (selected) {
+                    supplierNameInput.value = selected.name || '';
+                    supplierPhoneInput.value = selected.phone || '';
+                    supplierGSTInput.value = selected.gst_number || '';
+                    supplierNameInput.readOnly = true;
+                    supplierPhoneInput.readOnly = true;
+                    supplierGSTInput.readOnly = true;
+                }
+            }
+        });
+
+        // --- Edit/Update Purchase Order ---
+        async function loadPurchaseOrderForEdit(orderId) {
+            const { data: order, error } = await supabase
+                .from('gawrangi_purchase_orders')
+                .select('*, gawrangi_suppliers(*)')
+                .eq('id', orderId)
+                .single();
+            if (error || !order) {
+                alert('Could not load purchase order for editing.');
+                return;
+            }
+            supplierSelect.value = order.supplier_id;
+            supplierSelect.dispatchEvent(new Event('change'));
+            supplierNameInput.value = order.gawrangi_suppliers?.name || '';
+            supplierPhoneInput.value = order.gawrangi_suppliers?.phone || '';
+            supplierGSTInput.value = order.gawrangi_suppliers?.gst_number || '';
+            document.getElementById('purchaseBillNumber').value = order.bill_number || '';
+            document.getElementById('purchaseOrderDate').value = order.order_date || '';
+            document.getElementById('purchaseStatus').value = order.status || 'Pending';
+            document.getElementById('purchasePaymentMode').value = order.payment_mode || 'Cash';
+            document.getElementById('purchaseDiscount').value = order.discount || 0;
+            document.getElementById('purchaseAdditionalCharge').value = order.additional_charge || 0;
+            document.getElementById('purchaseRemarks').value = order.remarks || '';
+            document.getElementById('purchasePaidAmount').value = order.paid_amount || 0;
+
+            const { data: items } = await supabase
+                .from('gawrangi_purchase_order_items')
+                .select('*')
+                .eq('purchase_order_id', orderId);
+            purchaseItems = (items || []).filter(i => i.item_type !== 'RETURN');
+            supplierReturnItems = (items || []).filter(i => i.item_type === 'RETURN');
+            renderPurchaseItems();
+            renderSupplierReturnItems();
+            calculateTotals();
+
+            editOrderId = orderId;
+            saveBtn.textContent = 'Update Purchase Order';
+        }
+
+        // --- Form Submission (Save/Update) ---
+        purchaseForm.onsubmit = async function(e) {
+            e.preventDefault();
+            const formData = new FormData(purchaseForm);
+
+            // 1. Save supplier (or get existing)
+            const supplierName = formData.get('supplierName');
+            const supplierPhone = formData.get('supplierPhone');
+            const supplierGST = formData.get('supplierGST');
+            let supplierId;
+
+            let { data: supplier, error: supplierError } = await supabase
+                .from('gawrangi_suppliers')
+                .select('id')
+                .eq('name', supplierName)
+                .eq('phone', supplierPhone)
+                .single();
+
+            if (supplierError || !supplier) {
+                let { data: newSupplier, error: newSupplierError } = await supabase
+                    .from('gawrangi_suppliers')
+                    .insert({
+                        name: supplierName,
+                        phone: supplierPhone,
+                        gst_number: supplierGST
+                    })
+                    .select()
+                    .single();
+                if (newSupplierError) {
+                    alert('Error saving supplier!');
+                    return;
+                }
+                supplierId = newSupplier.id;
+            } else {
+                supplierId = supplier.id;
+            }
+
+            // 2. Save or update purchase order
+            const totals = calculateTotals();
+            let purchaseOrder;
+            if (editOrderId) {
+                const { data: updatedOrder, error: updateError } = await supabase
+                    .from('gawrangi_purchase_orders')
+                    .update({
+                        supplier_id: supplierId,
+                        bill_number: formData.get('purchaseBillNumber'),
+                        order_date: formData.get('purchaseOrderDate'),
+                        status: formData.get('purchaseStatus'),
+                        total_amount: totals.totalPurchase,
+                        paid_amount: totals.paidAmount,
+                        pending_amount: totals.pendingAmount,
+                        remarks: formData.get('purchaseRemarks'),
+                        additional_charge: totals.additionalCharge,
+                        discount: totals.discountedAmount,
+                        tax: totals.totalTax,
+                        final_amount: totals.finalAmount,
+                        payment_mode: formData.get('purchasePaymentMode')
+                    })
+                    .eq('id', editOrderId)
+                    .select()
+                    .single();
+                if (updateError) {
+                    alert('Error updating purchase order!');
+                    return;
+                }
+                purchaseOrder = updatedOrder;
+                await supabase.from('gawrangi_purchase_order_items').delete().eq('purchase_order_id', purchaseOrder.id);
+            } else {
+                const { data: newOrder, error: newOrderError } = await supabase
+                    .from('gawrangi_purchase_orders')
+                    .insert({
+                        supplier_id: supplierId,
+                        bill_number: formData.get('purchaseBillNumber'),
+                        order_date: formData.get('purchaseOrderDate'),
+                        status: formData.get('purchaseStatus'),
+                        total_amount: totals.totalPurchase,
+                        paid_amount: totals.paidAmount,
+                        pending_amount: totals.pendingAmount,
+                        remarks: formData.get('purchaseRemarks'),
+                        additional_charge: totals.additionalCharge,
+                        discount: totals.discountedAmount,
+                        tax: totals.totalTax,
+                        final_amount: totals.finalAmount,
+                        payment_mode: formData.get('purchasePaymentMode')
+                    })
+                    .select()
+                    .single();
+                if (newOrderError) {
+                    alert('Error saving purchase order!');
+                    return;
+                }
+                purchaseOrder = newOrder;
+            }
+
+            // 3. Save purchase items
+            for (const item of purchaseItems) {
+                await supabase.from('gawrangi_purchase_order_items').insert({
+                    purchase_order_id: purchaseOrder.id,
+                    item_name: item.item_name,
+                    metal_type: item.metal_type,
+                    weight: item.weight,
+                    purity: item.purity,
+                    rate_per_gram: item.rate_per_gram,
+                    making_charge_percentage: item.making_charge_percentage,
+                    tax_percentage: item.tax_percentage,
+                    total: (item.weight || 0) * (item.purity || 0) * (item.rate_per_gram || 0) / 100
+                });
+            }
+            for (const item of supplierReturnItems) {
+                await supabase.from('gawrangi_purchase_order_items').insert({
+                    purchase_order_id: purchaseOrder.id,
+                    item_name: item.item_name,
+                    metal_type: item.metal_type,
+                    weight: item.weight,
+                    purity: item.purity,
+                    rate_per_gram: item.rate_per_gram,
+                    item_type: 'RETURN'
+                });
+            }
+
+            alert(editOrderId ? 'Purchase order updated!' : 'Purchase order saved!');
+            purchaseForm.reset();
+            purchaseItems = [];
+            supplierReturnItems = [];
+            renderPurchaseItems();
+            renderSupplierReturnItems();
+            calculateTotals();
+            editOrderId = null;
+            saveBtn.textContent = 'Save Purchase Order';
+        };
+
+        // --- Cancel Button ---
+        document.getElementById('cancel-purchase-form-btn').onclick = () => {
+            purchaseForm.reset();
+            purchaseItems = [];
+            supplierReturnItems = [];
+            renderPurchaseItems();
+            renderSupplierReturnItems();
+            calculateTotals();
+            editOrderId = null;
+            saveBtn.textContent = 'Save Purchase Order';
+        };
+
+        // --- DOM Elements for Listing ---
+        const purchaseListContainer = document.getElementById('purchase-list-container');
+
+        // --- State ---
+        let currentPurchasePage = 1;
+        const purchasePageSize = 10;
+        let totalPurchaseOrders = 0;
+        let totalPurchasePages = 1;
+        let currentSupplierSearch = '';
+
+        // --- List Purchases ---
+        async function fetchAndRenderPurchaseOrders(page = 1, supplierSearch = '') {
+            purchaseListContainer.innerHTML = '<div class="text-center py-8 text-gray-500">Loading...</div>';
+
+            let query = supabase
+                .from('gawrangi_purchase_orders')
+                .select(`
+                    id,
+                    bill_number,
+                    order_date,
+                    final_amount,
+                    pending_amount,
+                    status,
+                    supplier_id,
+                    gawrangi_suppliers (
+                        name
+                    )
+                `)
+                .order('order_date', { ascending: false })
+                .range((page - 1) * purchasePageSize, page * purchasePageSize - 1);
+
+            if (supplierSearch) {
+                // Filter by supplier name
+                query = query.ilike('gawrangi_suppliers.name', `%${supplierSearch}%`);
+            }
+
+            const { data: orders, error, count } = await query;
+            if (error) {
+                purchaseListContainer.innerHTML = '<div class="text-center py-8 text-red-500">Failed to load purchase orders.</div>';
+                return;
+            }
+
+            totalPurchaseOrders = count || orders.length;
+            totalPurchasePages = Math.max(1, Math.ceil(totalPurchaseOrders / purchasePageSize));
+            currentPurchasePage = page;
+
+            let html = `
+                <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 bg-white rounded shadow">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-2 text-left">Bill No</th>
+                            <th class="px-4 py-2 text-left">Date</th>
+                            <th class="px-4 py-2 text-left">Supplier</th>
+                            <th class="px-4 py-2 text-left">Final Amount</th>
+                            <th class="px-4 py-2 text-left">Pending</th>
+                            <th class="px-4 py-2 text-left">Status</th>
+                            <th class="px-4 py-2 text-left">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${orders.length > 0
+        ? orders.filter(order => order.gawrangi_suppliers && order.gawrangi_suppliers.name).map(order => `
+                        
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-4 py-2">${order.bill_number || 'N/A'}</td>
+                                <td class="px-4 py-2">${order.order_date}</td>
+                                <td class="px-4 py-2">${order.gawrangi_suppliers?.name || '-'}</td>
+                                <td class="px-4 py-2 font-semibold">${formatCurrency(order.final_amount)}</td>
+                                <td class="px-4 py-2 font-semibold ${order.pending_amount > 0 ? 'text-red-600' : 'text-green-600'}">${formatCurrency(order.pending_amount)}</td>
+                                <td class="px-4 py-2">${order.status}</td>
+                                <td class="px-4 py-2 space-x-2">
+                                    <button class="view-purchase-btn px-2 py-1 bg-indigo-100 text-indigo-700 rounded" data-id="${order.id}">View</button>
+                                    <button class="delete-purchase-btn px-2 py-1 bg-red-100 text-red-700 rounded" data-id="${order.id}">Delete</button>
+                                    <button class="pay-purchase-btn px-2 py-1 bg-green-100 text-green-700 rounded" data-id="${order.id}" data-pending="${order.pending_amount}">Pay</button>
+                                </td>
+                            </tr>
+                        `).join('') : `<tr><td colspan="7" class="px-4 py-6 text-center text-gray-400">No records found.</td></tr>`}
+                    </tbody>
+                </table>
+                </div>
+                <div class="flex justify-center items-center gap-2 py-4">
+                    <button id="purchase-prev-btn" class="px-3 py-1 rounded bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300" ${currentPurchasePage === 1 ? 'disabled' : ''}>Previous</button>
+                    <span class="px-3 font-medium text-gray-700">Page ${currentPurchasePage} of ${totalPurchasePages}</span>
+                    <button id="purchase-next-btn" class="px-3 py-1 rounded bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300" ${currentPurchasePage === totalPurchasePages ? 'disabled' : ''}>Next</button>
+                </div>
+            `;
+            purchaseListContainer.innerHTML = html;
+
+            // Pagination
+            document.getElementById('purchase-prev-btn').onclick = () => fetchAndRenderPurchaseOrders(currentPurchasePage - 1, currentSupplierSearch);
+            document.getElementById('purchase-next-btn').onclick = () => fetchAndRenderPurchaseOrders(currentPurchasePage + 1, currentSupplierSearch);
+
+            // Search
+
+            const searchInput = document.getElementById('search-supplier-input');
+            if (searchInput) {
+                searchInput.value = currentSupplierSearch || '';
+                searchInput.focus();
+
+                let searchTimeout;
+                searchInput.onkeydown = function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault(); // Prevent page refresh
+                    }
+                };
+                searchInput.oninput = function(e) {
+                    clearTimeout(searchTimeout);
+                    currentSupplierSearch = e.target.value;
+                    searchTimeout = setTimeout(() => {
+                        fetchAndRenderPurchaseOrders(1, currentSupplierSearch); // Only refresh the list, debounced
+                    }, 400);
+                };
+            }
+
+            // Actions
+            document.querySelectorAll('.view-purchase-btn').forEach(btn => {
+                btn.onclick = () => openPurchaseViewModal(btn.dataset.id);
+            });
+            document.querySelectorAll('.delete-purchase-btn').forEach(btn => {
+                btn.onclick = () => deletePurchaseOrder(btn.dataset.id);
+            });
+            document.querySelectorAll('.pay-purchase-btn').forEach(btn => {
+                btn.onclick = () => showPurchasePaymentForm(btn.dataset.id, btn.dataset.pending);
+            });
+        }
+        fetchAndRenderPurchaseOrders();
+
+        // --- View Purchase Modal ---
+        function openPurchaseViewModal(orderId) {
+            // Create modal
+            let modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="relative mx-auto p-6 border w-full max-w-lg md:max-w-xl shadow-lg rounded-md bg-white" style="max-height:90vh;overflow-y:auto;">
+                    <div class="flex justify-between items-center pb-3 border-b">
+                        <h3 class="text-2xl font-bold text-gray-800">Purchase Details</h3>
+                        <button class="close-modal-btn p-2 -mr-2 rounded-full hover:bg-gray-200">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="purchase-modal-content" class="mt-4"></div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            // Close modal
+            modal.querySelector('.close-modal-btn').onclick = () => modal.remove();
+            modal.onclick = e => { if (e.target === modal) modal.remove(); };
+
+            // Fetch order details
+            supabase
+                .from('gawrangi_purchase_orders')
+                .select('*, gawrangi_suppliers(*), gawrangi_purchase_order_items(*), gawrangi_purchase_payments(*)')
+                .eq('id', orderId)
+                .single()
+                .then(({ data: order, error }) => {
+                    if (error || !order) {
+                        modal.querySelector('#purchase-modal-content').innerHTML = '<div class="text-center text-red-500">Could not load details.</div>';
+                        return;
+                    }
+                    // Items
+                    const buyItems = (order.gawrangi_purchase_order_items || []).filter(i => i.item_type !== 'RETURN');
+                    const returnItems = (order.gawrangi_purchase_order_items || []).filter(i => i.item_type === 'RETURN');
+                    // Payments
+                    const payments = order.gawrangi_purchase_payments || [];
+                    modal.querySelector('#purchase-modal-content').innerHTML = `
+                        <div class="grid grid-cols-2 gap-4 text-sm mb-6 pb-4 border-b">
+                            <div><strong>Supplier:</strong> ${order.gawrangi_suppliers?.name || '-'}</div>
+                            <div><strong>Phone:</strong> ${order.gawrangi_suppliers?.phone || '-'}</div>
+                            <div><strong>Bill No:</strong> ${order.bill_number || 'N/A'}</div>
+                            <div><strong>Date:</strong> ${order.order_date}</div>
+                        </div>
+                        ${buyItems.length > 0 ? `
+                        <h4 class="font-semibold text-green-700 mb-2">Purchased Items</h4>
+                        <ul class="list-disc list-inside mb-4 text-sm space-y-1">
+                            ${buyItems.map(item => `<li>${item.item_name} (${item.weight}g ${item.metal_type})</li>`).join('')}
+                        </ul>` : ''}
+                        ${returnItems.length > 0 ? `
+                        <h4 class="font-semibold text-blue-700 mb-2">Returned Items</h4>
+                        <ul class="list-disc list-inside mb-4 text-sm space-y-1">
+                            ${returnItems.map(item => `<li>${item.item_name} (${item.weight}g ${item.metal_type})</li>`).join('')}
+                        </ul>` : ''}
+                        <div class="mt-6 pt-4 border-t text-sm space-y-2">
+                            <div class="flex justify-between"><span>Total Purchase:</span><span class="font-semibold">${formatCurrency(order.total_amount)}</span></div>
+                            <div class="flex justify-between"><span>Total Return:</span><span class="font-semibold">${formatCurrency(returnItems.reduce((a, i) => a + (i.total || 0), 0))}</span></div>
+                            <div class="flex justify-between"><span>Tax Amount:</span><span class="font-semibold">${formatCurrency(order.tax)}</span></div>
+                            <div class="flex justify-between"><span>Discount:</span><span class="font-semibold text-red-600">-${formatCurrency(order.discount)}</span></div>
+                            <div class="flex justify-between"><span>Additional Charges:</span><span class="font-semibold text-green-600">+${formatCurrency(order.additional_charge)}</span></div>
+                            <hr class="my-2">
+                            <div class="flex justify-between font-bold text-base"><span>Final Total:</span><span>${formatCurrency(order.final_amount)}</span></div>
+                            <div class="flex justify-between"><span>Amount Paid:</span><span class="font-semibold">${formatCurrency(order.paid_amount)}</span></div>
+                            <div class="flex justify-between font-bold text-base ${order.pending_amount > 0 ? 'text-red-600' : 'text-green-600'}"><span>Pending Amount:</span><span>${formatCurrency(order.pending_amount)}</span></div>
+                            <div class="flex justify-between"><span>Remarks:</span><span class="italic text-gray-700">${order.remarks ? order.remarks : '-'}</span></div>
+                        </div>
+                        <div class="mt-8">
+                            <h4 class="font-semibold text-indigo-700 mb-2">Payment History</h4>
+                            <table class="min-w-full text-sm mb-4">
+                                <thead>
+                                    <tr>
+                                        <th class="px-2 py-1 text-left">Date</th>
+                                        <th class="px-2 py-1 text-left">Amount</th>
+                                        <th class="px-2 py-1 text-left">Mode</th>
+                                        <th class="px-2 py-1 text-left">Remarks</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${payments.length > 0 ? payments.map(p => `
+                                        <tr>
+                                            <td class="px-2 py-1">${p.date}</td>
+                                            <td class="px-2 py-1">${formatCurrency(p.amount)}</td>
+                                            <td class="px-2 py-1">${p.mode || '-'}</td>
+                                            <td class="px-2 py-1">${p.remarks || '-'}</td>
+                                        </tr>
+                                    `).join('') : `<tr><td colspan="4" class="px-2 py-2 text-gray-400 text-center">No payments yet.</td></tr>`}
+                                </tbody>
+                            </table>
+                            ${order.pending_amount > 0 ? `
+                            <button class="pay-purchase-btn px-4 py-2 bg-green-600 text-white rounded font-semibold hover:bg-green-700" data-id="${order.id}" data-pending="${order.pending_amount}">Pay</button>
+                            ` : ''}
+                        </div>
+                    `;
+                    // Pay button in modal
+                    const payBtn = modal.querySelector('.pay-purchase-btn');
+                    if (payBtn) {
+                        payBtn.onclick = () => {
+                            modal.remove();
+                            showPurchasePaymentForm(order.id, order.pending_amount);
+                        };
+                    }
+                });
+        }
+
+        // --- Delete Purchase Order ---
+        async function deletePurchaseOrder(orderId) {
+            if (!confirm('Are you sure you want to delete this purchase order?')) return;
+            const { error } = await supabase
+                .from('gawrangi_purchase_orders')
+                .delete()
+                .eq('id', orderId);
+            if (error) {
+                alert('Failed to delete purchase order.');
+            } else {
+                alert('Purchase order deleted.');
+                fetchAndRenderPurchaseOrders(currentPurchasePage, currentSupplierSearch);
+            }
+        }
+
+        // --- Payment Form ---
+        function showPurchasePaymentForm(orderId, pendingAmount) {
+            // Modal
+            let modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="relative mx-auto p-6 border w-full max-w-md shadow-lg rounded-md bg-white" style="max-height:90vh;overflow-y:auto;">
+                    <div class="flex justify-between items-center pb-3 border-b">
+                        <h3 class="text-xl font-bold text-gray-800">Pay Supplier</h3>
+                        <button class="close-modal-btn p-2 -mr-2 rounded-full hover:bg-gray-200">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <form id="purchase-payment-form" class="mt-4 space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Amount (₹)</label>
+                            <input type="number" name="amount" min="0.000001" max="${pendingAmount}" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm" value="${pendingAmount}">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Date</label>
+                            <input type="date" name="date" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm" value="${new Date().toISOString().split('T')[0]}">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Mode</label>
+                            <select name="mode" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm bg-white">
+                                <option>Cash</option>
+                                <option>UPI</option>
+                                <option>Card</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Remarks</label>
+                            <input type="text" name="remarks" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm">
+                        </div>
+                        <div class="flex justify-end gap-2 pt-4">
+                            <button type="button" class="close-modal-btn px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">Cancel</button>
+                            <button type="submit" class="px-6 py-2 bg-green-600 text-white font-semibold rounded hover:bg-green-700">Save Payment</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            // Close modal
+            modal.querySelectorAll('.close-modal-btn').forEach(btn => btn.onclick = () => modal.remove());
+            modal.onclick = e => { if (e.target === modal) modal.remove(); };
+
+            // Form submit
+            modal.querySelector('#purchase-payment-form').onsubmit = async function(e) {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const amount = parseFloat(formData.get('amount'));
+                const date = formData.get('date');
+                const mode = formData.get('mode');
+                const remarks = formData.get('remarks');
+
+                // Save payment
+                const { error: paymentError } = await supabase.from('gawrangi_purchase_payments').insert({
+                    purchase_order_id: orderId,
+                    amount,
+                    date,
+                    mode,
+                    remarks
+                });
+                if (paymentError) {
+                    alert('Failed to save payment.');
+                    return;
+                }
+
+                // Update order paid_amount and pending_amount
+                const { data: orderData, error: orderFetchError } = await supabase
+                    .from('gawrangi_purchase_orders')
+                    .select('paid_amount, final_amount')
+                    .eq('id', orderId)
+                    .single();
+                if (orderFetchError) {
+                    alert('Failed to update order.');
+                    return;
+                }
+                const newPaidAmount = (orderData.paid_amount || 0) + amount;
+                const newPendingAmount = Math.max(0, (orderData.final_amount || 0) - newPaidAmount);
+
+                const { error: orderUpdateError } = await supabase
+                    .from('gawrangi_purchase_orders')
+                    .update({
+                        paid_amount: newPaidAmount,
+                        pending_amount: newPendingAmount,
+                        status: newPendingAmount === 0 ? 'Completed' : 'Pending'
+                    })
+                    .eq('id', orderId);
+                if (orderUpdateError) {
+                    alert('Failed to update order.');
+                    return;
+                }
+
+                alert('Payment saved!');
+                modal.remove();
+                fetchAndRenderPurchaseOrders(currentPurchasePage, currentSupplierSearch);
+            };
+        }
+    </script>
+</head>
+
+<body class="bg-gray-100 font-sans">
+    <!-- Listing Page -->
+    <div id="list-page">
+        <div class="p-4 md:p-8 max-w-7xl mx-auto">
+            <div class="flex flex-wrap justify-between items-center mb-6 gap-2">
+                <h1 class="text-3xl font-bold text-gray-800">Purchase Orders</h1>
+                <div class="flex flex-wrap gap-2 w-full md:w-auto">
+                    <button id="new-purchase-btn" class="px-4 py-2 bg-indigo-600 text-white font-semibold rounded-md shadow-sm hover:bg-indigo-700 transition-colors inline-flex items-center gap-2 w-full md:w-auto">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                        Create Purchase Order
+                    </button>
+                </div>
+            </div>
+            <!-- Purchase listing will be rendered here by JS -->
+            <div class="flex justify-between items-center mb-6">
+                <input type="text" id="search-supplier-input" placeholder="Search Supplier" class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
+             </div>
+            <div id="purchase-list-container"></div>
+        </div>
+    </div>
+
+    <!-- Form Page (hidden by default) -->
+    <div id="form-page" class="hidden">
+        <div class="p-4 md:p-8 bg-gray-50 min-h-screen">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex flex-wrap items-center mb-6 gap-2">
+                    <button id="form-back-btn" class="p-2 rounded-full hover:bg-gray-200 mr-4">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    </button>
+                    <h1 id="form-title" class="text-3xl font-bold text-gray-800">Create Purchase Order</h1>
+                </div>
+                <!-- Your purchase order form goes here -->
+                <form id="purchase-order-form" class="space-y-8">
+                    <div class="p-6 bg-white rounded-lg shadow">
+                        <h2 class="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">Supplier Details</h2>
+                        <select name="supplierSelect" id="supplierSelect" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"></select>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div><label for="supplierName" class="block text-sm font-medium text-gray-700">Supplier Name</label><input type="text" name="supplierName" id="supplierName" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"></div>
+                            <div><label for="supplierPhone" class="block text-sm font-medium text-gray-700">Phone Number</label><input type="tel" name="supplierPhone" id="supplierPhone" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"></div>
+                            <div><label for="supplierGST" class="block text-sm font-medium text-gray-700">GST Number</label><input type="text" name="supplierGST" id="supplierGST" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"></div>
+                        </div>
+                    </div>
+                    <div class="p-6 bg-white rounded-lg shadow">
+                        <h2 class="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">Purchase Order Details</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                            <div><label for="purchaseBillNumber" class="block text-sm font-medium text-gray-700">Purchase Bill No.</label><input type="text" name="purchaseBillNumber" id="purchaseBillNumber" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"></div>
+                            <div><label for="purchaseOrderDate" class="block text-sm font-medium text-gray-700">Date</label><input type="date" name="purchaseOrderDate" id="purchaseOrderDate" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"></div>
+                            <div><label for="purchaseStatus" class="block text-sm font-medium text-gray-700">Status</label><select name="purchaseStatus" id="purchaseStatus" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm bg-white"><option>Completed</option><option>Pending</option><option>Cancelled</option></select></div>
+                            <div><label for="purchasePaymentMode" class="block text-sm font-medium text-gray-700">Payment Mode</label><select name="purchasePaymentMode" id="purchasePaymentMode" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm bg-white"><option>Cash</option><option>UPI</option><option>Card</option></select></div>
+                        </div>
+                    </div>
+                    <div class="p-6 bg-white rounded-lg shadow">
+                        <h2 class="text-xl font-semibold mb-4 text-green-700 border-b pb-2">Items Purchased</h2>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50"><tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Item</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Metal</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Weight(g)</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Purity</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rate(₹/g)</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Making %</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tax %</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                                </tr></thead>
+                                <tbody id="purchase-items-body" class="bg-white divide-y divide-gray-200"></tbody>
+                            </table>
+                        </div>
+                        <button type="button" id="add-purchase-item-btn" class="mt-4 px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-md hover:bg-gray-300 inline-flex items-center gap-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>Add Purchased Item</button>
+                    </div>
+                    <div class="p-6 bg-white rounded-lg shadow">
+                        <h2 class="text-xl font-semibold mb-4 text-blue-700 border-b pb-2">Return Items to Supplier</h2>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50"><tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Item</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Metal</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Weight(g)</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Purity</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rate(₹/g)</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                                </tr></thead>
+                                <tbody id="supplier-return-items-body" class="bg-white divide-y divide-gray-200"></tbody>
+                            </table>
+                        </div>
+                        <button type="button" id="add-supplier-return-item-btn" class="mt-4 px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-md hover:bg-gray-300 inline-flex items-center gap-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>Add Return Item</button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div class="md:col-span-2 p-6 bg-white rounded-lg shadow">
+                            <h2 class="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">Charges & Remarks</h2>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <div><label for="purchaseDiscount" class="block text-sm font-medium text-gray-700">Discount (₹)</label><input type="number" name="purchaseDiscount" id="purchaseDiscount" step="any" value="0" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"></div>
+                                <div><label for="purchaseAdditionalCharge" class="block text-sm font-medium text-gray-700">Additional Charge (₹)</label><input type="number" name="purchaseAdditionalCharge" id="purchaseAdditionalCharge" value="0" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"></div>
+                                <div class="sm:col-span-2"><label for="purchaseRemarks" class="block text-sm font-medium text-gray-700">Remarks</label><textarea name="purchaseRemarks" id="purchaseRemarks" rows="3" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"></textarea></div>
+                            </div>
+                        </div>
+                        <div class="p-6 bg-indigo-50 rounded-lg shadow-inner">
+                            <h2 class="text-xl font-semibold mb-4 text-indigo-800 border-b border-indigo-200 pb-2">Final Calculation</h2>
+                            <div class="space-y-3 text-gray-700">
+                                <div class="flex justify-between items-center"><span class="font-medium">Total Purchase:</span> <span id="total-purchase" class="font-semibold text-green-600">₹0.00</span></div>
+                                <div class="flex justify-between items-center"><span class="font-medium">Total Return:</span> <span id="total-supplier-return" class="font-semibold text-blue-600">₹0.00</span></div>
+                                <hr>
+                                <div class="flex justify-between items-center text-lg"><span class="font-bold">Net Total:</span> <span id="net-purchase-total" class="font-bold">₹0.00</span></div>
+                                <div class="flex justify-between items-center"><span class="font-medium">Additional Charge:</span> <span id="purchase-summary-additional-charge" class="font-semibold text-green-600">₹0.00</span></div>
+                                <div class="flex justify-between items-center"><span class="font-medium">Total Tax:</span> <span id="purchase-summary-total-tax" class="font-semibold">₹0.00</span></div>
+                                <div class="flex justify-between items-center"><span class="font-medium">Discounted Amount:</span> <span id="purchase-discounted-amount" class="font-semibold text-red-600">₹0.00</span></div>
+                                <hr>
+                                <div class="flex justify-between items-center text-xl"><span class="font-bold text-indigo-900">Final Amount:</span> <span id="purchase-final-amount" class="font-bold text-indigo-900">₹0.00</span></div>
+                                <div class="mt-4"><label for="purchasePaidAmount" class="block text-sm font-medium text-gray-700">Amount Paid (₹)</label><input type="number" name="purchasePaidAmount" id="purchasePaidAmount" step="any" value="0" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm text-lg font-bold"></div>
+                                <div class="flex justify-between items-center p-3 rounded-md text-xl"><span class="font-bold">Pending:</span> <span id="purchase-pending-amount" class="font-bold">₹0.00</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex justify-end gap-4 pt-6 border-t">
+                        <button type="button" id="cancel-purchase-form-btn" class="px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-md hover:bg-gray-300">Cancel</button>
+                        <button type="submit" id="save-purchase-order-btn" class="px-6 py-2 bg-indigo-600 text-white font-semibold rounded-md shadow-sm hover:bg-indigo-700 disabled:bg-indigo-400">Save Purchase Order</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
